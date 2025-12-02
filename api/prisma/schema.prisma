@@ -1,17 +1,68 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
+  provider     = "prisma-client-js"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
+model User {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  password    String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  name        String?
+  role        Role         @default(USER)
+  submissions Submission[]
+}
+
+model Problem {
+  id          String       @id @default(uuid())
+  slug        String       @unique
+  title       String
+  description String
+  difficulty  Difficulty
+  timeLimit   Int          @default(1000)
+  memoryLimit Int          @default(256)
+  starterCode Json
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  submissions Submission[]
+  testCases   TestCase[]
+}
+
+model TestCase {
+  id        String   @id @default(uuid())
+  input     String
+  output    String
+  isPublic  Boolean  @default(false)
+  problemId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  problem   Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+}
+
+model Submission {
+  id        String           @id @default(uuid())
+  code      String
+  language  Language
+  status    SubmissionStatus @default(PENDING)
+  verdict   Verdict?
+  userId    String
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  problemId String
+  testLogs  Json?
+  problem   Problem          @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
 enum Language {
   JAVASCRIPT
   PYTHON
-  JAVA
-  TYPESCRIPT
 }
 
 enum SubmissionStatus {
@@ -30,23 +81,13 @@ enum Verdict {
   RUNTIME_ERROR
 }
 
-model User {
-  id          String       @id @default(uuid())
-  email       String       @unique
-  password    String
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  submissions Submission[]
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
 }
 
-model Submission {
-  id        String           @id @default(uuid())
-  code      String
-  language  Language
-  status    SubmissionStatus @default(PENDING)
-  verdict   Verdict?
-  userId    String
-  user      User             @relation(fields: [userId], references: [id])
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+enum Role {
+  USER
+  ADMIN
 }
