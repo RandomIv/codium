@@ -8,6 +8,7 @@ import {
 } from './types/problem-preview.type';
 import { Prisma, Problem } from '../generated/prisma';
 import { ProblemDetail, problemDetailSelect } from './types/problem-detail.dto';
+import { PrismaClientKnownRequestError } from '@prisma/client-runtime-utils';
 
 @Injectable()
 export class ProblemService {
@@ -37,10 +38,30 @@ export class ProblemService {
   }
 
   async update(id: string, data: UpdateProblemDto): Promise<Problem> {
-    return this.prisma.problem.update({ where: { id }, data });
+    try {
+      return this.prisma.problem.update({ where: { id }, data });
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Problem with ID ${id} not found`);
+      }
+      throw error;
+    }
   }
 
   async remove(id: string): Promise<Problem> {
-    return this.prisma.problem.delete({ where: { id } });
+    try {
+      return await this.prisma.problem.delete({ where: { id } });
+    } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === 'P2025'
+      ) {
+        throw new NotFoundException(`Problem with ID ${id} not found`);
+      }
+      throw error;
+    }
   }
 }
