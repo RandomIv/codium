@@ -11,7 +11,7 @@ import { ProblemService } from './problem.service';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { UpdateProblemDto } from './dto/update-problem.dto';
 
-@Controller('problem')
+@Controller('problems')
 export class ProblemController {
   constructor(private readonly problemService: ProblemService) {}
 
@@ -20,9 +20,9 @@ export class ProblemController {
     return this.problemService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.problemService.findOne(id);
+  @Get(':slug')
+  findOne(@Param('slug') slug: string) {
+    return this.problemService.findOne(slug);
   }
 
   @Post()
