@@ -15,6 +15,9 @@ jobs:
       run:
         working-directory: ./api
 
+    env:
+      DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
+
     services:
       postgres:
         image: postgres:15-alpine
@@ -57,6 +60,4 @@ jobs:
         run: npm run test
 
       - name: Run API Integration Tests
-        env:
-          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
         run: npx prisma migrate deploy && npm run test:e2e:ci
