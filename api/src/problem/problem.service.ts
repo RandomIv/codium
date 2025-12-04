@@ -39,7 +39,7 @@ export class ProblemService {
 
   async update(id: string, data: UpdateProblemDto): Promise<Problem> {
     try {
-      return this.prisma.problem.update({ where: { id }, data });
+      return await this.prisma.problem.update({ where: { id }, data });
     } catch (error) {
       if (
         error instanceof PrismaClientKnownRequestError &&
