@@ -6,7 +6,7 @@ import {
   ProblemPreview,
   problemPreviewSelect,
 } from './types/problem-preview.type';
-import { Prisma, Problem } from '../generated/prisma';
+import { Problem } from '../generated/prisma';
 import { ProblemDetail, problemDetailSelect } from './types/problem-detail.dto';
 import { PrismaClientKnownRequestError } from '@prisma/client-runtime-utils';
 
