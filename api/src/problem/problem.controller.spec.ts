@@ -23,13 +23,6 @@ describe('ProblemController', () => {
     remove: jest.fn(),
   };
 
-  const previewProblem = previewProblemStub;
-  const detailProblem = detailProblemStub;
-  const createDto = createProblemDtoStub;
-  const updateDto = updateProblemDtoStub;
-  const createdProblem = problemStub;
-  const updatedProblem = updatedProblemStub;
-
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProblemController],
@@ -53,11 +46,11 @@ describe('ProblemController', () => {
 
   describe('findAll', () => {
     it('returns array of problems', async () => {
-      mockProblemService.findAll.mockResolvedValue([previewProblem]);
+      mockProblemService.findAll.mockResolvedValue([previewProblemStub]);
 
       const result = await controller.findAll();
 
-      expect(result).toEqual([previewProblem]);
+      expect(result).toEqual([previewProblemStub]);
       expect(service.findAll).toHaveBeenCalled();
     });
 
@@ -73,11 +66,11 @@ describe('ProblemController', () => {
 
   describe('findOne', () => {
     it('returns problem by slug', async () => {
-      mockProblemService.findOne.mockResolvedValue(detailProblem);
+      mockProblemService.findOne.mockResolvedValue(detailProblemStub);
 
       const result = await controller.findOne('two-sum');
 
-      expect(result).toEqual(detailProblem);
+      expect(result).toEqual(detailProblemStub);
       expect(service.findOne).toHaveBeenCalledWith('two-sum');
     });
 
@@ -94,23 +87,23 @@ describe('ProblemController', () => {
 
   describe('create', () => {
     it('creates problem', async () => {
-      mockProblemService.create.mockResolvedValue(createdProblem);
+      mockProblemService.create.mockResolvedValue(problemStub);
 
-      const result = await controller.create(createDto);
+      const result = await controller.create(createProblemDtoStub);
 
-      expect(result).toEqual(createdProblem);
-      expect(service.create).toHaveBeenCalledWith(createDto);
+      expect(result).toEqual(problemStub);
+      expect(service.create).toHaveBeenCalledWith(createProblemDtoStub);
     });
   });
 
   describe('update', () => {
     it('updates existing problem', async () => {
-      mockProblemService.update.mockResolvedValue(updatedProblem);
+      mockProblemService.update.mockResolvedValue(updatedProblemStub);
 
-      const result = await controller.update('1', updateDto);
+      const result = await controller.update('1', updateProblemDtoStub);
 
-      expect(result).toEqual(updatedProblem);
-      expect(service.update).toHaveBeenCalledWith('1', updateDto);
+      expect(result).toEqual(updatedProblemStub);
+      expect(service.update).toHaveBeenCalledWith('1', updateProblemDtoStub);
     });
 
     it('throws NotFoundException when problem does not exist', async () => {
@@ -118,19 +111,19 @@ describe('ProblemController', () => {
         new NotFoundException('Problem with ID 1 not found'),
       );
 
-      await expect(controller.update('1', updateDto)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        controller.update('1', updateProblemDtoStub),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('remove', () => {
     it('removes problem', async () => {
-      mockProblemService.remove.mockResolvedValue(createdProblem);
+      mockProblemService.remove.mockResolvedValue(problemStub);
 
       const result = await controller.remove('1');
 
-      expect(result).toEqual(createdProblem);
+      expect(result).toEqual(problemStub);
       expect(service.remove).toHaveBeenCalledWith('1');
     });
 

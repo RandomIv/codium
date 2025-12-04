@@ -45,8 +45,8 @@ export const problemStub: Problem = {
   starterCode: {},
   timeLimit: 1,
   memoryLimit: 1,
-  createdAt: new Date('2024-01-01'),
-  updatedAt: new Date('2024-01-01'),
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
 export const updatedProblemStub: Problem = {

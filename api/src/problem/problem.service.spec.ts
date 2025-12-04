@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProblemService } from './problem.service';
 import { PrismaService } from '../prisma/prisma.service';
-
 import {
   previewProblemStub,
   detailProblemStub,
@@ -29,12 +28,6 @@ describe('ProblemService', () => {
     },
   };
 
-  const previewProblem = previewProblemStub;
-  const detailProblem = detailProblemStub;
-  const createDto = createProblemDtoStub;
-  const updateDto = updateProblemDtoStub;
-  const createdProblem = problemStub;
-  const updatedProblem = updatedProblemStub;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -57,11 +50,13 @@ describe('ProblemService', () => {
   });
   describe('findAll', () => {
     it('returns array of problems', async () => {
-      mockPrismaService.problem.findMany.mockResolvedValue([previewProblem]);
+      mockPrismaService.problem.findMany.mockResolvedValue([
+        previewProblemStub,
+      ]);
 
       const result = await service.findAll();
 
-      expect(result).toEqual([previewProblem]);
+      expect(result).toEqual([previewProblemStub]);
       expect(prisma.problem.findMany).toHaveBeenCalledWith({
         select: problemPreviewSelect,
         orderBy: { createdAt: 'asc' },
@@ -80,11 +75,11 @@ describe('ProblemService', () => {
 
   describe('findOne', () => {
     it('returns problem by slug', async () => {
-      mockPrismaService.problem.findUnique.mockResolvedValue(detailProblem);
+      mockPrismaService.problem.findUnique.mockResolvedValue(detailProblemStub);
 
       const result = await service.findOne('two-sum');
 
-      expect(result).toEqual(detailProblem);
+      expect(result).toEqual(detailProblemStub);
       expect(prisma.problem.findUnique).toHaveBeenCalledWith({
         where: { slug: 'two-sum' },
         select: problemDetailSelect,
@@ -105,27 +100,27 @@ describe('ProblemService', () => {
 
   describe('create', () => {
     it('creates problem', async () => {
-      mockPrismaService.problem.create.mockResolvedValue(createdProblem);
+      mockPrismaService.problem.create.mockResolvedValue(problemStub);
 
-      const result = await service.create(createDto);
+      const result = await service.create(createProblemDtoStub);
 
-      expect(result).toEqual(createdProblem);
+      expect(result).toEqual(problemStub);
       expect(prisma.problem.create).toHaveBeenCalledWith({
-        data: createDto,
+        data: createProblemDtoStub,
       });
     });
   });
 
   describe('update', () => {
     it('updates existing problem', async () => {
-      mockPrismaService.problem.update.mockResolvedValue(updatedProblem);
+      mockPrismaService.problem.update.mockResolvedValue(updatedProblemStub);
 
-      const result = await service.update('1', updateDto);
+      const result = await service.update('1', updateProblemDtoStub);
 
-      expect(result).toEqual(updatedProblem);
+      expect(result).toEqual(updatedProblemStub);
       expect(prisma.problem.update).toHaveBeenCalledWith({
         where: { id: '1' },
-        data: updateDto,
+        data: updateProblemDtoStub,
       });
     });
     it('throws NotFoundException when problem does not exist', async () => {
@@ -136,7 +131,7 @@ describe('ProblemService', () => {
 
       mockPrismaService.problem.update.mockRejectedValue(prismaError);
 
-      await expect(service.update('1', updateDto)).rejects.toThrow(
+      await expect(service.update('1', updateProblemDtoStub)).rejects.toThrow(
         NotFoundException,
       );
     });
@@ -144,11 +139,11 @@ describe('ProblemService', () => {
 
   describe('remove', () => {
     it('removes problem', async () => {
-      mockPrismaService.problem.delete.mockResolvedValue(createdProblem);
+      mockPrismaService.problem.delete.mockResolvedValue(problemStub);
 
       const result = await service.remove('1');
 
-      expect(result).toEqual(createdProblem);
+      expect(result).toEqual(problemStub);
       expect(prisma.problem.delete).toHaveBeenCalledWith({
         where: { id: '1' },
       });
