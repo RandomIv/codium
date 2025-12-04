@@ -1,0 +1,57 @@
+name: CI (Quality Gate)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  validate:
+    name: Validate, Build & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: codium
+          POSTGRES_PASSWORD: codium_password
+          POSTGRES_DB: codium_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js (LTS)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Lint Check
+        run: npm run lint
+
+      - name: Build Check (Compilation)
+        run: npm run build
+
+      - name: Run Unit Tests
+        run: npm run test
+
+      - name: Run API Integration Tests
+        env:
+          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
+        run: npx prisma migrate deploy && npm run test:e2e:ci
