@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsObject,
+  IsOptional,
   IsString,
   Min,
 } from 'class-validator';
@@ -25,15 +26,15 @@ export class CreateProblemDto {
   @IsEnum(Difficulty)
   difficulty: Difficulty;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsInt()
-  @Min(0)
-  timeLimit: number;
+  @Min(1)
+  timeLimit?: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsInt()
-  @Min(0)
-  memoryLimit: number;
+  @Min(1)
+  memoryLimit?: number;
 
   @IsNotEmpty()
   @IsObject()
