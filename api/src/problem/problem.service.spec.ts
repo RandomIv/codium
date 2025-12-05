@@ -98,6 +98,31 @@ describe('ProblemService', () => {
     });
   });
 
+  describe('findOneById', () => {
+    it('returns problem by id', async () => {
+      mockPrismaService.problem.findUnique.mockResolvedValue(problemStub);
+
+      const result = await service.findOneById('1');
+
+      expect(result).toEqual(problemStub);
+      expect(prisma.problem.findUnique).toHaveBeenCalledWith({
+        where: { id: '1' },
+        include: { testCases: true },
+      });
+    });
+
+    it('throws NotFoundException when problem does not exist', async () => {
+      mockPrismaService.problem.findUnique.mockResolvedValue(null);
+
+      await expect(service.findOneById('missing')).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.findOneById('missing')).rejects.toThrow(
+        'Problem missing not found',
+      );
+    });
+  });
+
   describe('create', () => {
     it('creates problem', async () => {
       mockPrismaService.problem.create.mockResolvedValue(problemStub);

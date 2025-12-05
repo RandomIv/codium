@@ -18,6 +18,7 @@ describe('ProblemController', () => {
   const mockProblemService = {
     findAll: jest.fn(),
     findOne: jest.fn(),
+    findOneById: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     remove: jest.fn(),
@@ -80,6 +81,27 @@ describe('ProblemController', () => {
       );
 
       await expect(controller.findOne('missing-slug')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+  });
+
+  describe('findOneById', () => {
+    it('returns problem by id', async () => {
+      mockProblemService.findOneById.mockResolvedValue(problemStub);
+
+      const result = await controller.findOneById('1');
+
+      expect(result).toEqual(problemStub);
+      expect(service.findOneById).toHaveBeenCalledWith('1');
+    });
+
+    it('throws NotFoundException when problem does not exist', async () => {
+      mockProblemService.findOneById.mockRejectedValue(
+        new NotFoundException('Problem 999 not found'),
+      );
+
+      await expect(controller.findOneById('999')).rejects.toThrow(
         NotFoundException,
       );
     });
