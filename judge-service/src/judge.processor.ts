@@ -1,43 +1,34 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
-import { ConfigService } from '@nestjs/config';
+import { ApiService } from './api/api.service';
 
 @Processor('judge-queue')
 export class JudgeProcessor extends WorkerHost {
-  constructor(private readonly configService: ConfigService) {
+  constructor(private readonly apiService: ApiService) {
     super();
   }
+
   async process(job: Job) {
     const { problemId, code, language } = job.data;
-    const submissionId = job.id;
-
-    const apiUrl = this.configService.getOrThrow('API_URL').replace(/\/$/, '');
-    const systemApiKey = this.configService.getOrThrow('SYSTEM_API_KEY');
-    const url = `${apiUrl}/problems/system/${problemId}`;
+    const submissionId = job.id as string;
 
     try {
-      const response = await fetch(url, {
-        headers: {
-          'x-system-api-key': systemApiKey,
-        },
+      await this.apiService.updateSubmission(submissionId, {
+        status: 'IN_PROGRESS',
       });
 
-      if (!response.ok) {
-        throw new Error(
-          `Failed to fetch problem. Status: ${response.status} ${response.statusText}`,
-        );
-      }
+      const problemData = await this.apiService.getProblem(problemId);
 
-      const problemData = await response.json();
-      console.log(
-        ` Loaded problem ${problemData.title}. Tests: ${problemData.testCases.length}`,
-      );
-
-      //check code here
-
-      return { status: 'Processing link established' };
+      // TODO: Logic execution here
+      console.log(problemData);
+      return { status: 'Job processed successfully' };
     } catch (error) {
       console.error(`Judge failed for #${submissionId}:`, error.message);
+
+      await this.apiService
+        .updateSubmission(submissionId, { status: 'FAILED' })
+        .catch(() => {});
+
       throw error;
     }
   }
