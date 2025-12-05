@@ -9,7 +9,6 @@ import {
   problemStub,
   updatedProblemStub,
 } from './problem.stubs';
-import { NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client-runtime-utils';
 import { problemPreviewSelect } from './types/problem-preview.type';
 import { problemDetailSelect } from './types/problem-detail.dto';
@@ -21,7 +20,7 @@ describe('ProblemService', () => {
   const mockPrismaService = {
     problem: {
       findMany: jest.fn(),
-      findUnique: jest.fn(),
+      findUniqueOrThrow: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
@@ -75,51 +74,59 @@ describe('ProblemService', () => {
 
   describe('findOne', () => {
     it('returns problem by slug', async () => {
-      mockPrismaService.problem.findUnique.mockResolvedValue(detailProblemStub);
+      mockPrismaService.problem.findUniqueOrThrow.mockResolvedValue(
+        detailProblemStub,
+      );
 
       const result = await service.findOne('two-sum');
 
       expect(result).toEqual(detailProblemStub);
-      expect(prisma.problem.findUnique).toHaveBeenCalledWith({
+      expect(prisma.problem.findUniqueOrThrow).toHaveBeenCalledWith({
         where: { slug: 'two-sum' },
         select: problemDetailSelect,
       });
     });
 
-    it('throws NotFoundException when problem does not exist', async () => {
-      mockPrismaService.problem.findUnique.mockResolvedValue(null);
+    it('propagates prisma error when problem does not exist', async () => {
+      const prismaError = new PrismaClientKnownRequestError('Not Found', {
+        code: 'P2025',
+        clientVersion: '5.0.0',
+      });
 
-      await expect(service.findOne('missing-slug')).rejects.toThrow(
-        NotFoundException,
+      mockPrismaService.problem.findUniqueOrThrow.mockRejectedValue(
+        prismaError,
       );
-      await expect(service.findOne('missing-slug')).rejects.toThrow(
-        'Problem missing-slug not found',
-      );
+
+      await expect(service.findOne('missing-slug')).rejects.toBe(prismaError);
     });
   });
 
   describe('findOneById', () => {
     it('returns problem by id', async () => {
-      mockPrismaService.problem.findUnique.mockResolvedValue(problemStub);
+      mockPrismaService.problem.findUniqueOrThrow.mockResolvedValue(
+        problemStub,
+      );
 
       const result = await service.findOneById('1');
 
       expect(result).toEqual(problemStub);
-      expect(prisma.problem.findUnique).toHaveBeenCalledWith({
+      expect(prisma.problem.findUniqueOrThrow).toHaveBeenCalledWith({
         where: { id: '1' },
         include: { testCases: true },
       });
     });
 
-    it('throws NotFoundException when problem does not exist', async () => {
-      mockPrismaService.problem.findUnique.mockResolvedValue(null);
+    it('propagates prisma error when problem does not exist', async () => {
+      const prismaError = new PrismaClientKnownRequestError('Not Found', {
+        code: 'P2025',
+        clientVersion: '5.0.0',
+      });
 
-      await expect(service.findOneById('missing')).rejects.toThrow(
-        NotFoundException,
+      mockPrismaService.problem.findUniqueOrThrow.mockRejectedValue(
+        prismaError,
       );
-      await expect(service.findOneById('missing')).rejects.toThrow(
-        'Problem missing not found',
-      );
+
+      await expect(service.findOneById('missing')).rejects.toBe(prismaError);
     });
   });
 
@@ -148,7 +155,7 @@ describe('ProblemService', () => {
         data: updateProblemDtoStub,
       });
     });
-    it('throws NotFoundException when problem does not exist', async () => {
+    it('propagates prisma error when update fails', async () => {
       const prismaError = new PrismaClientKnownRequestError('Not Found', {
         code: 'P2025',
         clientVersion: '5.0.0',
@@ -156,8 +163,8 @@ describe('ProblemService', () => {
 
       mockPrismaService.problem.update.mockRejectedValue(prismaError);
 
-      await expect(service.update('1', updateProblemDtoStub)).rejects.toThrow(
-        NotFoundException,
+      await expect(service.update('1', updateProblemDtoStub)).rejects.toBe(
+        prismaError,
       );
     });
   });
@@ -173,7 +180,7 @@ describe('ProblemService', () => {
         where: { id: '1' },
       });
     });
-    it('throws NotFoundException when problem does not exist', async () => {
+    it('propagates prisma error when delete fails', async () => {
       const prismaError = new PrismaClientKnownRequestError('Not Found', {
         code: 'P2025',
         clientVersion: '5.0.0',
@@ -181,7 +188,7 @@ describe('ProblemService', () => {
 
       mockPrismaService.problem.delete.mockRejectedValue(prismaError);
 
-      await expect(service.remove('999')).rejects.toThrow(NotFoundException);
+      await expect(service.remove('999')).rejects.toBe(prismaError);
     });
   });
 });

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProblemController } from './problem.controller';
 import { ProblemService } from './problem.service';
 import { NotFoundException } from '@nestjs/common';
+import { SystemGuard } from '../common/guards/system.guard';
 import {
   previewProblemStub,
   detailProblemStub,
@@ -33,7 +34,10 @@ describe('ProblemController', () => {
           useValue: mockProblemService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(SystemGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
+      .compile();
 
     controller = module.get<ProblemController>(ProblemController);
     service = module.get<ProblemService>(ProblemService);
