@@ -37,5 +37,5 @@ export class CreateProblemDto {
 
   @IsNotEmpty()
   @IsObject()
-  starterCode: Record<string, string>;
+  starterCode: Record<string, any>;
 }
