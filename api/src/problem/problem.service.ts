@@ -32,6 +32,16 @@ export class ProblemService {
 
     return problem;
   }
+  async findOneById(id: string): Promise<Problem | null> {
+    const problem = await this.prisma.problem.findUnique({
+      where: { id },
+      include: { testCases: true },
+    });
+    if (!problem) {
+      throw new NotFoundException(`Problem ${id} not found`);
+    }
+    return problem;
+  }
 
   async create(data: CreateProblemDto): Promise<Problem> {
     return this.prisma.problem.create({ data });

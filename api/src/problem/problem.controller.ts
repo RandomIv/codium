@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  UseGuards,
 } from '@nestjs/common';
 import { ProblemService } from './problem.service';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { UpdateProblemDto } from './dto/update-problem.dto';
+import { SystemGuard } from '../common/guards/system.guard';
 
 @Controller('problems')
 export class ProblemController {
@@ -18,6 +20,11 @@ export class ProblemController {
   @Get()
   findAll() {
     return this.problemService.findAll();
+  }
+  @UseGuards(SystemGuard)
+  @Get('system/:id')
+  findOneById(@Param('id') id: string) {
+    return this.problemService.findOneById(id);
   }
 
   @Get(':slug')
