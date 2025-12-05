@@ -1,11 +1,12 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post } from '@nestjs/common';
 import { SubmissionService } from './submission.service';
+import { CreateSubmissionDto } from './dtos/create-submission.dto';
 
-@Controller('submission')
+@Controller('submissions')
 export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
   @Post()
-  create(@Body() body: any) {
-    return this.submissionService.create(body);
+  create(@Body() createSubmissionDto: CreateSubmissionDto) {
+    return this.submissionService.create(createSubmissionDto);
   }
 }
