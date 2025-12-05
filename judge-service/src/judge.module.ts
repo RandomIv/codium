@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { JudgeProcessor } from './judge.processor';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule } from '@nestjs/config';
+import { ApiService } from './api/api.service';
 
 @Module({
   imports: [
@@ -10,6 +11,6 @@ import { ConfigModule } from '@nestjs/config';
     BullModule.registerQueue({ name: 'judge-queue' }),
   ],
   controllers: [],
-  providers: [JudgeProcessor],
+  providers: [JudgeProcessor, ApiService],
 })
-export class AppModule {}
+export class JudgeModule {}
