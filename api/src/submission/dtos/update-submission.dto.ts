@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsObject, IsOptional } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
 import { SubmissionStatus, Verdict } from '../../generated/prisma';
 
 export class UpdateSubmissionDto {
@@ -7,10 +7,9 @@ export class UpdateSubmissionDto {
   status: SubmissionStatus;
 
   @IsOptional()
-  @IsObject()
-  testLogs?: Record<string, any>;
+  testLogs?: any;
 
   @IsOptional()
   @IsEnum(Verdict)
-  Verdict?: Verdict;
+  verdict?: Verdict;
 }
