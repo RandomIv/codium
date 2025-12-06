@@ -3,6 +3,7 @@ import { JudgeProcessor } from './judge.processor';
 import { BullModule } from '@nestjs/bullmq';
 import { ConfigModule } from '@nestjs/config';
 import { ApiService } from './api/api.service';
+import { ExecutionService } from './execution/docker-execution.service';
 
 @Module({
   imports: [
@@ -11,6 +12,6 @@ import { ApiService } from './api/api.service';
     BullModule.registerQueue({ name: 'judge-queue' }),
   ],
   controllers: [],
-  providers: [JudgeProcessor, ApiService],
+  providers: [JudgeProcessor, ApiService, ExecutionService],
 })
 export class JudgeModule {}
