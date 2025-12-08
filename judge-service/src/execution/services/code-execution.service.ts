@@ -3,13 +3,13 @@ import Docker from 'dockerode';
 import {
   IContainer,
   IDockerClient,
-} from '../abstractions/docker-client.interface';
+} from '../interfaces/docker-client.interface';
 import { ContainerManager } from '../managers/container.manager';
 import { ExecutionTimer } from '../utils/execution-timer';
 import { ResultCollectorService } from './result-collector.service';
 import ExecutionResult from '../interfaces/execution-result.interface';
 @Injectable()
-export class CodeExecutionOrchestrator {
+export class CodeExecutionService {
   constructor(
     private readonly containerManager: ContainerManager,
     private readonly resultCollector: ResultCollectorService,

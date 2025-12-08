@@ -6,8 +6,8 @@ import ExecutionResult from './interfaces/execution-result.interface';
 import getLanguageConfig from './config/language.config';
 import { ContainerConfigBuilder } from './config/container.config';
 import { FileManager } from './managers/file.manager';
-import { CodeExecutionOrchestrator } from './services/code-execution.orchestrator';
-import { DockerClientAdapter } from './abstractions/docker-client.interface';
+import { CodeExecutionService } from './services/code-execution.service';
+import { DockerClientAdapter } from './adapters/docker-client.adapter';
 import { ResultCollectorService } from './services/result-collector.service';
 
 @Injectable()
@@ -18,7 +18,7 @@ export class ExecutionService implements OnModuleInit {
 
   constructor(
     private readonly fileManager: FileManager,
-    private readonly orchestrator: CodeExecutionOrchestrator,
+    private readonly orchestrator: CodeExecutionService,
     private readonly resultCollector: ResultCollectorService,
   ) {}
 

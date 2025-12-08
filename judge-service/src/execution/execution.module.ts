@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { ExecutionService } from './docker-execution.service';
 import { FileManager } from './managers/file.manager';
 import { ContainerManager } from './managers/container.manager';
-import { CodeExecutionOrchestrator } from './services/code-execution.orchestrator';
+import { CodeExecutionService } from './services/code-execution.service';
 import { ResultCollectorService } from './services/result-collector.service';
 
 @Module({
@@ -10,7 +10,7 @@ import { ResultCollectorService } from './services/result-collector.service';
     ExecutionService,
     FileManager,
     ContainerManager,
-    CodeExecutionOrchestrator,
+    CodeExecutionService,
     ResultCollectorService,
   ],
   exports: [ExecutionService],
