@@ -2,10 +2,8 @@ import { Processor, WorkerHost } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { Logger } from '@nestjs/common';
 import { ApiService, JudgeProblem } from './api/api.service';
-import {
-  ExecutionService,
-  ExecutionResult,
-} from './execution/docker-execution.service';
+import { ExecutionService } from './execution/docker-execution.service';
+import ExecutionResult from './execution/interfaces/execution-result.interface';
 
 enum SubmissionStatus {
   IN_PROGRESS = 'IN_PROGRESS',
