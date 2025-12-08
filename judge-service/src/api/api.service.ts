@@ -5,6 +5,7 @@ export interface JudgeProblem {
   timeLimit: number;
   memoryLimit: number;
   testCases: {
+    id: string;
     input: string;
     output: string;
   }[];

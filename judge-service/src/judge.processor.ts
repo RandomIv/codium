@@ -19,6 +19,24 @@ enum Verdict {
   COMPILATION_ERROR = 'COMPILATION_ERROR',
 }
 
+interface TestLogEntry {
+  testCaseId: string;
+  status: Verdict;
+  input: string;
+  expectedOutput: string;
+  actualOutput: string;
+  stderr?: string;
+  executionTime: number;
+  memory: number;
+}
+
+interface TestRunResult {
+  verdict: Verdict;
+  maxTime: number;
+  passedCount: number;
+  testLogs: TestLogEntry[];
+}
+
 @Processor('judge-queue')
 export class JudgeProcessor extends WorkerHost {
   private readonly logger = new Logger(JudgeProcessor.name);
@@ -49,6 +67,7 @@ export class JudgeProcessor extends WorkerHost {
         time: Math.round(result.maxTime),
         memory: 0,
         testCasesPassed: result.passedCount,
+        testLogs: result.testLogs,
       });
 
       this.logger.log(`Job ${job.id} finished. Verdict: ${result.verdict}`);
@@ -72,9 +91,10 @@ export class JudgeProcessor extends WorkerHost {
     code: string,
     language: string,
     problem: JudgeProblem,
-  ) {
+  ): Promise<TestRunResult> {
     let maxTime = 0;
     let passedCount = 0;
+    const testLogs: TestLogEntry[] = [];
 
     for (const test of problem.testCases) {
       const result: ExecutionResult = await this.executionService.runCode(
@@ -88,24 +108,38 @@ export class JudgeProcessor extends WorkerHost {
         maxTime = result.executionTime;
       }
 
-      if (result.isTimeLimitExceeded) {
-        return { verdict: Verdict.TIME_LIMIT_EXCEEDED, maxTime, passedCount };
-      }
-
-      if (result.exitCode !== 0) {
-        return { verdict: Verdict.RUNTIME_ERROR, maxTime, passedCount };
-      }
-
       const actualOutput = result.stdout.trim();
       const expectedOutput = test.output.trim();
 
-      if (actualOutput !== expectedOutput) {
-        return { verdict: Verdict.WRONG_ANSWER, maxTime, passedCount };
+      let testVerdict: Verdict;
+
+      if (result.isTimeLimitExceeded) {
+        testVerdict = Verdict.TIME_LIMIT_EXCEEDED;
+      } else if (result.exitCode !== 0) {
+        testVerdict = Verdict.RUNTIME_ERROR;
+      } else if (actualOutput !== expectedOutput) {
+        testVerdict = Verdict.WRONG_ANSWER;
+      } else {
+        testVerdict = Verdict.ACCEPTED;
+        passedCount++;
       }
 
-      passedCount++;
+      testLogs.push({
+        testCaseId: test.id,
+        status: testVerdict,
+        input: test.input,
+        expectedOutput: test.output,
+        actualOutput: result.stdout,
+        stderr: result.stderr || undefined,
+        executionTime: Math.round(result.executionTime),
+        memory: 0,
+      });
+
+      if (testVerdict !== Verdict.ACCEPTED) {
+        return { verdict: testVerdict, maxTime, passedCount, testLogs };
+      }
     }
 
-    return { verdict: Verdict.ACCEPTED, maxTime, passedCount };
+    return { verdict: Verdict.ACCEPTED, maxTime, passedCount, testLogs };
   }
 }

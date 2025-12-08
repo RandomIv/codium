@@ -2,9 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { CreateSubmissionDto } from './dtos/create-submission.dto';
-import { Submission } from '../generated/prisma';
+import { Submission, Prisma } from '../generated/prisma';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UpdateSubmissionDto } from './dtos/update-submission.dto';
+
 @Injectable()
 export class SubmissionService {
   constructor(
@@ -31,6 +32,16 @@ export class SubmissionService {
     return submission;
   }
   async update(id: string, data: UpdateSubmissionDto): Promise<Submission> {
-    return this.prisma.submission.update({ where: { id }, data });
+    const { testLogs, ...otherData } = data;
+
+    return this.prisma.submission.update({
+      where: { id },
+      data: {
+        ...otherData,
+        ...(testLogs && {
+          testLogs: testLogs as unknown as Prisma.InputJsonValue,
+        }),
+      },
+    });
   }
 }
