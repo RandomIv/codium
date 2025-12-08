@@ -4,12 +4,12 @@ const LANGUAGE_CONFIGS: Record<string, LanguageConfig> = {
   python: {
     image: 'python:3.9-slim',
     extension: 'py',
-    command: (file) => ['python3', '-u', file],
+    command: (file) => ['/bin/sh', '-c', `python3 -u ${file}`],
   },
   javascript: {
     image: 'node:18-alpine',
     extension: 'js',
-    command: (file) => ['node', file],
+    command: (file) => ['/bin/sh', '-c', `node ${file}`],
   },
 };
 export default function getLanguageConfig(language: string): LanguageConfig {
