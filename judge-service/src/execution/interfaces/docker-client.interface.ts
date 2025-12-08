@@ -17,13 +17,3 @@ export interface IContainer {
 export interface IDockerClient {
   createContainer(options: Docker.ContainerCreateOptions): Promise<IContainer>;
 }
-
-export class DockerClientAdapter implements IDockerClient {
-  constructor(private readonly docker: Docker) {}
-
-  async createContainer(
-    options: Docker.ContainerCreateOptions,
-  ): Promise<IContainer> {
-    return (await this.docker.createContainer(options)) as IContainer;
-  }
-}

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { IContainer } from '../abstractions/docker-client.interface';
+import { IContainer } from '../interfaces/docker-client.interface';
 
 @Injectable()
 export class ContainerManager {
@@ -30,10 +30,19 @@ export class ContainerManager {
   }
 
   async readLogs(container: IContainer): Promise<Buffer> {
-    return (await container.logs({
+    const logs = await container.logs({
       stdout: true,
       stderr: true,
-    })) as Buffer;
+    });
+    const bufferLogs = logs as Buffer;
+
+    const MAX_LOG_SIZE = 1024 * 1024;
+
+    if (bufferLogs.length > MAX_LOG_SIZE) {
+      return bufferLogs.subarray(0, MAX_LOG_SIZE);
+    }
+
+    return bufferLogs;
   }
 
   async getExitCode(container: IContainer): Promise<number> {

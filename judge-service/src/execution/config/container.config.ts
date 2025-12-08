@@ -18,8 +18,8 @@ export class ContainerConfigBuilder {
       StdinOnce: true,
       NetworkDisabled: true,
       HostConfig: {
-        Memory: 128 * 1024 * 1024,
-        MemorySwap: 128 * 1024 * 1024,
+        Memory: 512 * 1024 * 1024,
+        MemorySwap: 512 * 1024 * 1024,
         NetworkMode: 'none',
         Binds: [`${options.tempDir}:${options.workDir}:rw`],
         PidsLimit: 50,
