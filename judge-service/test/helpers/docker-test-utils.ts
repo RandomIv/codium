@@ -3,6 +3,19 @@
  * 
  * Helper functions for E2E tests to handle Docker container lifecycle properly.
  * These utilities address common issues with async container cleanup.
+ * 
+ * Note: This file uses `any` types for Docker-related parameters to avoid adding
+ * dockerode as a dependency to this utility file. When using these functions,
+ * import Docker from 'dockerode' in your test files and pass the properly typed instance.
+ * 
+ * Example usage:
+ * ```typescript
+ * import Docker from 'dockerode';
+ * import { waitForContainerCleanup } from './helpers/docker-test-utils';
+ * 
+ * const docker = new Docker();
+ * const cleaned = await waitForContainerCleanup(docker, 'python:3.9-slim-time');
+ * ```
  */
 
 /**
@@ -13,14 +26,14 @@
  * and checking immediately after execution may show containers that are
  * in the process of being removed.
  * 
- * @param docker - Docker instance
+ * @param docker - Docker instance from dockerode (typed as any to avoid dependency)
  * @param imageName - Image name to filter containers by (e.g., 'python:3.9-slim-time')
  * @param maxAttempts - Maximum number of polling attempts (default: 10)
  * @param delayMs - Delay in milliseconds between attempts (default: 500)
  * @returns Promise<boolean> - true if cleaned up, false if timeout
  */
 export async function waitForContainerCleanup(
-  docker: any,
+  docker: any, // Docker from 'dockerode'
   imageName: string,
   maxAttempts: number = 10,
   delayMs: number = 500,
@@ -48,11 +61,11 @@ export async function waitForContainerCleanup(
  * This function forcefully removes all containers matching test images.
  * Should be called in afterAll hooks to ensure clean test environment.
  * 
- * @param docker - Docker instance
+ * @param docker - Docker instance from dockerode (typed as any to avoid dependency)
  * @param imageNames - Array of image names to clean up
  */
 export async function cleanupTestContainers(
-  docker: any,
+  docker: any, // Docker from 'dockerode'
   imageNames: string[],
 ): Promise<void> {
   const containers = await docker.listContainers({ all: true });
