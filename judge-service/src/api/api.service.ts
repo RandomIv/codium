@@ -55,7 +55,6 @@ export class ApiService {
       const text = await response.text();
       return text ? JSON.parse(text) : (null as T);
     } catch (error) {
-      console.error(`API request failed for ${endpoint}:`, error.message);
       throw error;
     }
   }
