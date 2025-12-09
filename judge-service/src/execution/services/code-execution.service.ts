@@ -21,6 +21,7 @@ export class CodeExecutionService {
     timeLimitMs: number,
   ): Promise<ExecutionResult> {
     let container: IContainer | null = null;
+
     try {
       container = await dockerClient.createContainer(containerConfig);
 
@@ -49,6 +50,7 @@ export class CodeExecutionService {
         await this.containerManager.kill(container);
         return this.resultCollector.createTimeoutResult(
           execution.executionTimeMs,
+          0,
         );
       }
 
@@ -58,8 +60,11 @@ export class CodeExecutionService {
       return this.resultCollector.createSuccessResult(
         logsBuffer,
         exitCode,
-        execution.executionTimeMs,
+        0,
+        0,
       );
+    } catch (error) {
+      throw error;
     } finally {
       if (container) {
         await this.containerManager.remove(container);

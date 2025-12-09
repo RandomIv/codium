@@ -33,6 +33,7 @@ interface TestLogEntry {
 interface TestRunResult {
   verdict: Verdict;
   maxTime: number;
+  maxMemory: number;
   passedCount: number;
   testLogs: TestLogEntry[];
 }
@@ -61,16 +62,16 @@ export class JudgeProcessor extends WorkerHost {
 
       const result = await this.runTests(code, language, problem);
 
-      await this.apiService.updateSubmission(submissionId, {
+      const updateData = {
         status: SubmissionStatus.COMPLETED,
         verdict: result.verdict,
         time: Math.round(result.maxTime),
-        memory: 0,
+        memory: Math.round(result.maxMemory / 1024),
         testCasesPassed: result.passedCount,
         testLogs: result.testLogs,
-      });
+      };
 
-      this.logger.log(`Job ${job.id} finished. Verdict: ${result.verdict}`);
+      await this.apiService.updateSubmission(submissionId, updateData);
       return { status: 'Done', verdict: result.verdict };
     } catch (error) {
       this.logger.error(`Judge failed for #${submissionId}: ${error.message}`);
@@ -93,6 +94,7 @@ export class JudgeProcessor extends WorkerHost {
     problem: JudgeProblem,
   ): Promise<TestRunResult> {
     let maxTime = 0;
+    let maxMemory = 0;
     let passedCount = 0;
     const testLogs: TestLogEntry[] = [];
 
@@ -106,6 +108,10 @@ export class JudgeProcessor extends WorkerHost {
 
       if (result.executionTime > maxTime) {
         maxTime = result.executionTime;
+      }
+
+      if (result.memory > maxMemory) {
+        maxMemory = result.memory;
       }
 
       const actualOutput = result.stdout.trim();
@@ -132,14 +138,26 @@ export class JudgeProcessor extends WorkerHost {
         actualOutput: result.stdout,
         stderr: result.stderr || undefined,
         executionTime: Math.round(result.executionTime),
-        memory: 0,
+        memory: Math.round(result.memory / 1024),
       });
 
       if (testVerdict !== Verdict.ACCEPTED) {
-        return { verdict: testVerdict, maxTime, passedCount, testLogs };
+        return {
+          verdict: testVerdict,
+          maxTime,
+          maxMemory,
+          passedCount,
+          testLogs,
+        };
       }
     }
 
-    return { verdict: Verdict.ACCEPTED, maxTime, passedCount, testLogs };
+    return {
+      verdict: Verdict.ACCEPTED,
+      maxTime,
+      maxMemory,
+      passedCount,
+      testLogs,
+    };
   }
 }
