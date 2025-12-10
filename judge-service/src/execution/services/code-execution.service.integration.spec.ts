@@ -399,7 +399,7 @@ describe('CodeExecutionService Integration', () => {
 });
 
 function createDockerLogBuffer(stdout: string, stderr: string): Buffer {
-  const frames = [];
+  const frames: Buffer[] = [];
 
   if (stdout) {
     const stdoutBuffer = Buffer.from(stdout, 'utf-8');

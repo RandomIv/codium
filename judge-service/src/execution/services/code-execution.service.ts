@@ -48,6 +48,7 @@ export class CodeExecutionService {
 
       if (execution.timedOut) {
         await this.containerManager.kill(container);
+        await new Promise((resolve) => setTimeout(resolve, 100));
         return this.resultCollector.createTimeoutResult(
           execution.executionTimeMs,
           0,
@@ -67,7 +68,13 @@ export class CodeExecutionService {
       throw error;
     } finally {
       if (container) {
-        await this.containerManager.remove(container);
+        try {
+          await this.containerManager.remove(container);
+        } catch (error) {
+          console.warn(
+            `Failed to remove container in finally: ${error.message}`,
+          );
+        }
       }
     }
   }
