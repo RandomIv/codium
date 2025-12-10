@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
 
 env:
   SYSTEM_API_KEY: "e3d83efd3474a53f625ffdfa98f6c9fa2936e7722d7d16bae50d9382370ba2f8"
