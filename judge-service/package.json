@@ -18,7 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand --forceExit",
     "test:e2e": "jest --config ./test/jest-e2e.json --runInBand --forceExit",
-    "test:e2e:ci": "jest --config ./test/jest-e2e.json --runInBand --ci --forceExit"
+    "test:e2e:ci": "jest --config ./test/jest-e2e.json --runInBand --forceExit --ci"
   },
   "dependencies": {
     "@nestjs/bullmq": "^11.0.4",
