@@ -1,21 +1,30 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [ "main" ]
   pull_request:
-    branches: [main]
+    branches: [ "main" ]
+
+env:
+  SYSTEM_API_KEY: "e3d83efd3474a53f625ffdfa98f6c9fa2936e7722d7d16bae50d9382370ba2f8"
+  JWT_SECRET: "your_jwt_secret_key"
 
 jobs:
   api:
+    name: API Service
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./api
 
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:15-alpine
         env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: codium
+          POSTGRES_PASSWORD: codium_password
           POSTGRES_DB: codium_test
         ports:
           - 5432:5432
@@ -46,123 +55,46 @@ jobs:
           cache-dependency-path: api/package-lock.json
 
       - name: Install dependencies
-        working-directory: ./api
         run: npm ci
 
       - name: Generate Prisma Client
-        working-directory: ./api
+        env:
+          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
         run: npx prisma generate
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/codium_test
 
-      - name: Run migrations
-        working-directory: ./api
+      - name: Run Migrations
+        env:
+          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
         run: npx prisma migrate deploy
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/codium_test
-
-      - name: Run unit tests
-        working-directory: ./api
-        run: npm test
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/codium_test
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret-key
-          NODE_ENV: test
-
-      - name: Run e2e tests
-        working-directory: ./api
-        run: npm run test:e2e
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/codium_test
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret-key
-          NODE_ENV: test
-
-  judge-service:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: judge-service/package-lock.json
-
-      - name: Install dependencies
-        working-directory: ./judge-service
-        run: npm ci
-
-      - name: Build Docker images for code execution
-        working-directory: ./judge-service
-        run: |
-          # Build Python image with /usr/bin/time
-          docker build -t python:3.9-slim-time -f- . <<EOF
-          FROM python:3.9-slim
-          RUN apt-get update && \
-              apt-get install -y time && \
-              rm -rf /var/lib/apt/lists/*
-          WORKDIR /app
-          EOF
-
-          # Build Node.js image with /usr/bin/time
-          docker build -t node:18-slim-time -f- . <<EOF
-          FROM node:18-slim
-          RUN apt-get update && \
-              apt-get install -y time && \
-              rm -rf /var/lib/apt/lists/*
-          WORKDIR /app
-          EOF
-
-      - name: Verify Docker images
-        run: |
-          docker images | grep "python.*3.9-slim-time"
-          docker images | grep "node.*18-slim-time"
-
-      - name: Run unit tests
-        working-directory: ./judge-service
-        run: npm test
-        env:
-          API_URL: http://localhost:3000
-          SYSTEM_API_KEY: test-api-key
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          NODE_ENV: test
-
-      - name: Run e2e tests
-        working-directory: ./judge-service
-        run: npm run test:e2e:ci
-        env:
-          API_URL: http://localhost:3000
-          SYSTEM_API_KEY: test-api-key
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          NODE_ENV: test
-
-  web:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: web/package-lock.json
-
-      - name: Install dependencies
-        working-directory: ./web
-        run: npm ci
 
       - name: Build
-        working-directory: ./web
         run: npm run build
+
+      - name: Run Tests (Unit & E2E)
         env:
-          NEXT_PUBLIC_API_URL: http://localhost:3000
+          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
+          JWT_SECRET: "your_jwt_secret_key"
+          SYSTEM_API_KEY: "e3d83efd3474a53f625ffdfa98f6c9fa2936e7722d7d16bae50d9382370ba2f8"
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: |
+          npm run test
+          npm run test:e2e:ci
+
+  judge-service:
+    name: Judge Service
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./judge-service
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --h
