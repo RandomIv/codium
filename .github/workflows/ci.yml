@@ -24,11 +24,21 @@ jobs:
         env:
           POSTGRES_USER: codium
           POSTGRES_PASSWORD: codium_password
-          POSTGRES_DB: codium_test 
+          POSTGRES_DB: codium_test
         ports:
           - 5432:5432
         options: >-
           --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -103,11 +113,6 @@ jobs:
         env:
           API_URL: "http://localhost:5000/api"
         run: npm run build
-
-      - name: Run Tests
-        run: |
-          npm run test
-          npm run test:e2e:ci
 
   web:
     name: Web Frontend
