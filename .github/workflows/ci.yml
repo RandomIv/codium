@@ -114,6 +114,11 @@ jobs:
           API_URL: "http://localhost:5000/api"
         run: npm run build
 
+      - name: Run Tests (Unit & E2E)
+        run: |
+          npm run test
+          npm run test:e2e:ci
+
   web:
     name: Web Frontend
     runs-on: ubuntu-latest
