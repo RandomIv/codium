@@ -3,7 +3,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { CreateSubmissionDto } from './dtos/create-submission.dto';
 import { Submission, Prisma } from '../generated/prisma';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { UpdateSubmissionDto } from './dtos/update-submission.dto';
 
 @Injectable()

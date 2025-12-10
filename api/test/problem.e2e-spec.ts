@@ -7,6 +7,7 @@ import {
   createProblemDtoStub,
   updateProblemDtoStub,
 } from '../src/problem/problem.stubs';
+import { PrismaExceptionFilter } from '../src/common/filters/prisma-exception.filter';
 
 describe('ProblemController (E2E)', () => {
   let app: INestApplication;
@@ -21,6 +22,7 @@ describe('ProblemController (E2E)', () => {
     app.useGlobalPipes(
       new ValidationPipe({ whitelist: true, transform: true }),
     );
+    app.useGlobalFilters(new PrismaExceptionFilter());
     app.setGlobalPrefix('api');
     await app.init();
     prisma = app.get<PrismaService>(PrismaService);
@@ -81,7 +83,36 @@ describe('ProblemController (E2E)', () => {
         .expect(404);
     });
   });
+  describe('GET /api/problems/system/:id', () => {
+    it('returns a problem by id [200]', async () => {
+      const createdProblem = await prisma.problem.create({
+        data: createProblemDtoStub,
+      });
+      return request(app.getHttpServer())
+        .get(`/api/problems/system/${createdProblem.id}`)
+        .set('x-system-api-key', process.env.SYSTEM_API_KEY ?? '')
+        .expect(200)
+        .expect(({ body }) => {
+          expect(body.id).toBe(createdProblem.id);
+          expect(body.slug).toBe(createdProblem.slug);
+        });
+    });
+    it('returns 401 for unauthorized requests', async () => {
+      const createdProblem = await prisma.problem.create({
+        data: createProblemDtoStub,
+      });
 
+      return request(app.getHttpServer())
+        .get(`/api/problems/system/${createdProblem.id}`)
+        .expect(401);
+    });
+    it('returns 404 for non-existent id', () => {
+      return request(app.getHttpServer())
+        .get(`/api/problems/system/fake-id-12345`)
+        .set('x-system-api-key', process.env.SYSTEM_API_KEY ?? '')
+        .expect(404);
+    });
+  });
   describe('PATCH /api/problems/:id', () => {
     it('updates a problem [200]', async () => {
       const createdProblem = await prisma.problem.create({
