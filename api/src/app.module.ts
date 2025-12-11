@@ -3,6 +3,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { SubmissionModule } from './submission/submission.module';
+import { ProblemModule } from './problem/problem.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SubmissionModule } from './submission/submission.module';
       },
     }),
     SubmissionModule,
+    ProblemModule,
   ],
   controllers: [],
   providers: [],
