@@ -3,8 +3,8 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
-import ProblemDescription from '@/app/(workspace)/problems/[id]/_components/ProblemDescription';
-import ProblemWorkspace from '@/app/(workspace)/problems/[id]/_components/ProblemWorkspace';
+import ProblemDescription from '@/app/(workspace)/problems/[slug]/_components/ProblemDescription';
+import ProblemWorkspace from '@/app/(workspace)/problems/[slug]/_components/ProblemWorkspace';
 
 export default function Page() {
   return (

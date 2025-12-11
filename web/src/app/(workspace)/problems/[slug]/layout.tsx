@@ -1,5 +1,5 @@
 import ProblemHeader from './_components/ProblemHeader';
-import StatusBar from '@/app/(workspace)/problems/[id]/_components/StatusBar';
+import StatusBar from '@/app/(workspace)/problems/[slug]/_components/StatusBar';
 
 export default function WorkspaceLayout({
   children,

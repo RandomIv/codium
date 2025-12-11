@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Home, Upload } from 'lucide-react';
 import Link from 'next/link';
-import LanguagePicker from '@/app/(workspace)/problems/[id]/_components/LanguagePicker';
+import LanguagePicker from '@/app/(workspace)/problems/[slug]/_components/LanguagePicker';
 
 export default function ProblemHeader() {
   return (

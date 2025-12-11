@@ -1,13 +1,13 @@
 'use client';
 
 import { Editor } from '@monaco-editor/react';
-import WindowHeader from '@/app/(workspace)/problems/[id]/_components/WindowHeader';
+import WindowHeader from '@/app/(workspace)/problems/[slug]/_components/WindowHeader';
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
-import { TestConsole } from '@/app/(workspace)/problems/[id]/_components/TestConsole';
+import { TestConsole } from '@/app/(workspace)/problems/[slug]/_components/TestConsole';
 
 export default function ProblemWorkspace() {
   const changeHandler = (value: string | undefined) => {

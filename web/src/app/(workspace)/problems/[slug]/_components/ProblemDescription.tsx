@@ -1,4 +1,4 @@
-import WindowHeader from '@/app/(workspace)/problems/[id]/_components/WindowHeader';
+import WindowHeader from '@/app/(workspace)/problems/[slug]/_components/WindowHeader';
 import remarkGfm from 'remark-gfm';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
