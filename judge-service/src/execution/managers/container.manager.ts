@@ -1,15 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { IContainer } from '../interfaces/docker-client.interface';
+import { Container } from '../interfaces/docker-client.interface';
 
 @Injectable()
 export class ContainerManager {
   private readonly logger = new Logger(ContainerManager.name);
 
-  async start(container: IContainer): Promise<void> {
+  async start(container: Container): Promise<void> {
     await container.start();
   }
 
-  async kill(container: IContainer): Promise<void> {
+  async kill(container: Container): Promise<void> {
     try {
       await container.kill();
     } catch (error) {
@@ -17,11 +17,11 @@ export class ContainerManager {
     }
   }
 
-  async wait(container: IContainer): Promise<void> {
+  async wait(container: Container): Promise<void> {
     await container.wait();
   }
 
-  async remove(container: IContainer): Promise<void> {
+  async remove(container: Container): Promise<void> {
     try {
       await container.remove({ force: true });
     } catch (error) {
@@ -29,7 +29,7 @@ export class ContainerManager {
     }
   }
 
-  async readLogs(container: IContainer): Promise<Buffer> {
+  async readLogs(container: Container): Promise<Buffer> {
     const logs = await container.logs({
       stdout: true,
       stderr: true,
@@ -45,7 +45,7 @@ export class ContainerManager {
     return bufferLogs;
   }
 
-  async getExitCode(container: IContainer): Promise<number> {
+  async getExitCode(container: Container): Promise<number> {
     const info = await container.inspect();
     return info.State.ExitCode;
   }

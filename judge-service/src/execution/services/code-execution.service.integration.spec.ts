@@ -2,10 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CodeExecutionService } from './code-execution.service';
 import { ContainerManager } from '../managers/container.manager';
 import { ResultCollectorService } from './result-collector.service';
-import {
-  IContainer,
-  IDockerClient,
-} from '../interfaces/docker-client.interface';
+import { Container, DockerClient } from '../interfaces/docker-client.interface';
 import Docker from 'dockerode';
 
 describe('CodeExecutionService Integration', () => {
@@ -30,8 +27,8 @@ describe('CodeExecutionService Integration', () => {
   });
 
   describe('execute integration', () => {
-    let mockDockerClient: jest.Mocked<IDockerClient>;
-    let mockContainer: jest.Mocked<IContainer>;
+    let mockDockerClient: jest.Mocked<DockerClient>;
+    let mockContainer: jest.Mocked<Container>;
     let mockStream: any;
 
     beforeEach(() => {
@@ -50,11 +47,11 @@ describe('CodeExecutionService Integration', () => {
         inspect: jest.fn().mockResolvedValue({
           State: { ExitCode: 0 },
         } as any),
-      } as jest.Mocked<IContainer>;
+      } as jest.Mocked<Container>;
 
       mockDockerClient = {
         createContainer: jest.fn().mockResolvedValue(mockContainer),
-      } as jest.Mocked<IDockerClient>;
+      } as jest.Mocked<DockerClient>;
     });
 
     it('should execute complete container lifecycle', async () => {

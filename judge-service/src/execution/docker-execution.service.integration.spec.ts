@@ -4,8 +4,6 @@ import { FileManager } from './managers/file.manager';
 import { CodeExecutionService } from './services/code-execution.service';
 import { ResultCollectorService } from './services/result-collector.service';
 import { ContainerManager } from './managers/container.manager';
-import { DockerClientAdapter } from './adapters/docker-client.adapter';
-import Docker from 'dockerode';
 
 describe('ExecutionService Integration', () => {
   let service: ExecutionService;
@@ -66,7 +64,7 @@ describe('ExecutionService Integration', () => {
 
       expect(writeFileSpy).toHaveBeenCalledWith(
         expect.stringContaining('/tmp'),
-        code,
+        expect.stringContaining(code),
         'py',
       );
       expect(executeSpy).toHaveBeenCalled();
@@ -346,7 +344,7 @@ describe('ExecutionService Integration', () => {
 
       expect(fileManager.writeCodeFile).toHaveBeenCalledWith(
         expect.anything(),
-        code,
+        expect.stringContaining(code),
         'py',
       );
     });

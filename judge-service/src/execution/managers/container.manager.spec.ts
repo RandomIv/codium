@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ContainerManager } from './container.manager';
-import { IContainer } from '../interfaces/docker-client.interface';
+import { Container } from '../interfaces/docker-client.interface';
 
 describe('ContainerManager', () => {
   let manager: ContainerManager;
-  let mockContainer: jest.Mocked<IContainer>;
+  let mockContainer: jest.Mocked<Container>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -21,7 +21,7 @@ describe('ContainerManager', () => {
       attach: jest.fn(),
       logs: jest.fn(),
       inspect: jest.fn(),
-    } as jest.Mocked<IContainer>;
+    } as jest.Mocked<Container>;
   });
 
   describe('start', () => {

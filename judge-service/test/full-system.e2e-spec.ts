@@ -87,7 +87,7 @@ describe('Full System E2E', () => {
         id: 'test-sub-2',
         data: {
           problemId: 'test-prob-2',
-          code: 'const input = require("fs").readFileSync(0, "utf-8").trim();\nconsole.log(parseInt(input) * 2);',
+          code: 'function solution(x) { return parseInt(x) * 2; }',
           language: 'javascript',
         },
       };
@@ -96,8 +96,8 @@ describe('Full System E2E', () => {
         timeLimit: 1000,
         memoryLimit: 262144,
         testCases: [
-          { id: 'test-1', input: '5', output: '10' },
-          { id: 'test-2', input: '10', output: '20' },
+          { id: 'test-1', input: JSON.stringify([5]), output: '10' },
+          { id: 'test-2', input: JSON.stringify([10]), output: '20' },
         ],
       };
 
