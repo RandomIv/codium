@@ -8,6 +8,12 @@ export const fetchProblemById = async (id: string) => {
   return res.json();
 };
 
+export const fetchSubmissionById = async (id: string) => {
+  const res = await fetch(`${API_URL}/submissions/${id}`);
+  if (!res.ok) throw new Error('Failed to fetch submission');
+  return res.json();
+};
+
 export const submitSolution = async (payload: CreateSubmissionDto) => {
   const res = await fetch(`${API_URL}/submissions`, {
     method: 'POST',
