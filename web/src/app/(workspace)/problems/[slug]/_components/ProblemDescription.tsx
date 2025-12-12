@@ -1,37 +1,50 @@
+'use client';
+
 import WindowHeader from '@/app/(workspace)/problems/[slug]/_components/WindowHeader';
 import remarkGfm from 'remark-gfm';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
-const MOCK_MARKDOWN = `
-# Two Sum
-
-Given an array of integers \`nums\` and an integer \`target\`, return indices of the two numbers such that they add up to \`target\`.
-
-## Example 1:
-
-\`\`\`
-Input: nums = [2,7,11,15], target = 9
-Output: [0,1]
-Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
-\`\`\`
-
-## Constraints:
-
-* $2 \\le nums.length \\le 10^4$
-* $-10^9 \\le nums[i] \\le 10^9$
-`;
+import { useProblem } from '@/hooks/useProblem';
+import { useParams } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
+import 'katex/dist/katex.min.css';
 
 export default function ProblemDescription() {
+  const params = useParams();
+  const slug = params.slug as string;
+
+  const { data: problem, isLoading } = useProblem(slug);
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full flex-col">
+        <WindowHeader text="Description" />
+        <div className="flex h-full items-center justify-center">
+          <Loader2 className="animate-spin text-muted-foreground" />
+        </div>
+      </div>
+    );
+  }
+
+  if (!problem) {
+    return (
+      <div className="flex h-full flex-col">
+        <WindowHeader text="Description" />
+        <div className="p-4 text-muted-foreground">Problem not found.</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="">
-      <WindowHeader text="Description"></WindowHeader>
-      <div className="prose prose-invert prose-md max-w-none p-4">
+    <div className="flex h-full flex-col overflow-hidden">
+      <WindowHeader text={problem.title} />{' '}
+      <div className="prose prose-invert prose-sm md:prose-base max-w-none p-4 overflow-y-auto flex-1">
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkMath]}
           rehypePlugins={[rehypeKatex]}
         >
-          {MOCK_MARKDOWN}
+          {problem.description}
         </ReactMarkdown>
       </div>
     </div>
