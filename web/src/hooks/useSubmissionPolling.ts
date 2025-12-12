@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchSubmissionById } from '@/lib/problems';
 import { SubmissionStatus } from '@/types/enums';
-import { useWorkspaceStore } from '@/store/workspace-store';
+import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useEffect } from 'react';
 
 export const useSubmissionPolling = (submissionId: string | null) => {

@@ -9,7 +9,7 @@ import {
   AlertTriangle,
   Terminal,
 } from 'lucide-react';
-import { useWorkspaceStore } from '@/store/workspace-store';
+import { useWorkspaceStore } from '@/store/workspaceStore';
 import { Verdict } from '@/types/enums';
 import { cn } from '@/lib/utils';
 

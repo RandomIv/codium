@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { Language } from '@/types/enums';
 import type { TestLogs } from '@/types/test-log';
 
-interface WorkspaceState {
+type WorkspaceState = {
   language: Language;
   codes: Record<string, string>;
   testLogs: TestLogs | null;
@@ -20,7 +20,7 @@ interface WorkspaceState {
   setTestLogs: (testLogs: TestLogs | null) => void;
   setIsRunning: (isRunning: boolean) => void;
   reset: () => void;
-}
+};
 
 export const useWorkspaceStore = create<WorkspaceState>()(
   persist(

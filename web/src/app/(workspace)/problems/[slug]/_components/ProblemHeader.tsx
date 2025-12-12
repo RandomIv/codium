@@ -5,7 +5,7 @@ import { Home, Upload, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import LanguagePicker from './LanguagePicker';
-import { useWorkspaceStore } from '@/store/workspace-store';
+import { useWorkspaceStore } from '@/store/workspaceStore';
 import { useSubmission } from '@/hooks/useSubmission';
 import { useProblem } from '@/hooks/useProblem';
 import { useState } from 'react';

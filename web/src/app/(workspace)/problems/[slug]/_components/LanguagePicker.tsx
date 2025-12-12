@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useWorkspaceStore } from '@/store/workspace-store';
+import { useWorkspaceStore } from '@/store/workspaceStore';
 import { Language } from '@/types/enums'; // Переконайся, що шлях вірний
 
 export default function LanguagePicker() {
