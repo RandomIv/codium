@@ -1,18 +1,23 @@
 'use client';
 
 import { Editor } from '@monaco-editor/react';
-import WindowHeader from '@/app/(workspace)/problems/[slug]/_components/WindowHeader';
+import WindowHeader from './WindowHeader';
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from '@/components/ui/resizable';
-import { TestConsole } from '@/app/(workspace)/problems/[slug]/_components/TestConsole';
+import { TestConsole } from './TestConsole';
+import { useWorkspaceStore } from '@/store/workspace-store';
 
 export default function ProblemWorkspace() {
+  const { codes, language, setCode } = useWorkspaceStore();
   const changeHandler = (value: string | undefined) => {
-    console.log(value);
+    if (value !== undefined) {
+      setCode(value);
+    }
   };
+
   return (
     <ResizablePanelGroup direction="vertical">
       <ResizablePanel defaultSize={60} minSize={20}>
@@ -21,8 +26,8 @@ export default function ProblemWorkspace() {
           <div className="h-full flex-1 min-h-0">
             <Editor
               height="100%"
-              defaultLanguage="javascript"
-              defaultValue="// some comment"
+              language={language.toLowerCase()}
+              value={codes[language]}
               theme="vs-dark"
               onChange={changeHandler}
               loading={
