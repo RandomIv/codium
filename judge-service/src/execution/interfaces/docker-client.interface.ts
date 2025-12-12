@@ -1,6 +1,6 @@
 import Docker from 'dockerode';
 
-export interface IContainer {
+export type Container = {
   start(): Promise<void>;
   wait(): Promise<any>;
   kill(): Promise<void>;
@@ -12,8 +12,8 @@ export interface IContainer {
     options: Docker.ContainerLogsOptions,
   ): Promise<Buffer | NodeJS.ReadableStream>;
   inspect(): Promise<Docker.ContainerInspectInfo>;
-}
+};
 
-export interface IDockerClient {
-  createContainer(options: Docker.ContainerCreateOptions): Promise<IContainer>;
-}
+export type DockerClient = {
+  createContainer(options: Docker.ContainerCreateOptions): Promise<Container>;
+};

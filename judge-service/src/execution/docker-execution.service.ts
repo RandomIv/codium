@@ -41,9 +41,12 @@ export class ExecutionService implements OnModuleInit {
 
     try {
       const langConfig = getLanguageConfig(language);
+
+      const fullCode = langConfig.template.replace('{{USER_CODE}}', code);
+
       const { filename, filepath: fp } = await this.fileManager.writeCodeFile(
         this.hostTempDir,
-        code,
+        fullCode,
         langConfig.extension,
       );
       filepath = fp;

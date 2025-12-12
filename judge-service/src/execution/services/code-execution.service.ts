@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import Docker from 'dockerode';
-import {
-  IContainer,
-  IDockerClient,
-} from '../interfaces/docker-client.interface';
+import { Container, DockerClient } from '../interfaces/docker-client.interface';
 import { ContainerManager } from '../managers/container.manager';
 import { ExecutionTimer } from '../utils/execution-timer';
 import { ResultCollectorService } from './result-collector.service';
@@ -15,12 +12,12 @@ export class CodeExecutionService {
     private readonly resultCollector: ResultCollectorService,
   ) {}
   async execute(
-    dockerClient: IDockerClient,
+    dockerClient: DockerClient,
     containerConfig: Docker.ContainerCreateOptions,
     input: string,
     timeLimitMs: number,
   ): Promise<ExecutionResult> {
-    let container: IContainer | null = null;
+    let container: Container | null = null;
 
     try {
       container = await dockerClient.createContainer(containerConfig);
