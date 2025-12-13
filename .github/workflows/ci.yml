@@ -77,6 +77,7 @@ jobs:
           SYSTEM_API_KEY: "e3d83efd3474a53f625ffdfa98f6c9fa2936e7722d7d16bae50d9382370ba2f8"
           REDIS_HOST: localhost
           REDIS_PORT: 6379
+          JWT_EXPIRATION: "1h"
         run: |
           npm run test
           npm run test:e2e:ci
