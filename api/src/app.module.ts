@@ -4,6 +4,8 @@ import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bullmq';
 import { SubmissionModule } from './submission/submission.module';
 import { ProblemModule } from './problem/problem.module';
+import { AuthModule } from './auth/auth.module';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -17,6 +19,8 @@ import { ProblemModule } from './problem/problem.module';
     }),
     SubmissionModule,
     ProblemModule,
+    AuthModule,
+    UserModule,
   ],
   controllers: [],
   providers: [],
