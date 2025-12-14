@@ -50,3 +50,12 @@ export const existingUserStub: User = {
   createdAt: new Date('2024-01-01T00:00:00.000Z'),
   updatedAt: new Date('2024-01-01T00:00:00.000Z'),
 };
+export const userProfileStub = {
+  id: userStub.id,
+  email: userStub.email,
+  role: userStub.role,
+  name: userStub.name,
+  createdAt: userStub.createdAt,
+  updatedAt: userStub.updatedAt,
+  submissions: [],
+};
