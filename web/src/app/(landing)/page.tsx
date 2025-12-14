@@ -16,7 +16,7 @@ export default function Home() {
             A simple platform to practice your algorithmic skills.
           </p>
           <div className="pt-4">
-            <Link href="/problems">
+            <Link href="/register">
               <Button
                 size="lg"
                 className="text-lg px-8 py-6 font-bold hover:cursor-pointer hover:ring-5 hover:ring-accent"
