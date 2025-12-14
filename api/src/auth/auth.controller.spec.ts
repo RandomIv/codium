@@ -50,14 +50,14 @@ describe('AuthController', () => {
       expect(result).toEqual(registerUserResponseStub);
     });
 
-    it('should return access token and user id', async () => {
+    it('should return message and user id', async () => {
       mockAuthService.register.mockResolvedValue(registerUserResponseStub);
 
       const result = await authController.register(registerUserDtoStub);
 
-      expect(result).toHaveProperty('accessToken');
+      expect(result).toHaveProperty('message');
       expect(result).toHaveProperty('userId');
-      expect(result.accessToken).toBe(registerUserResponseStub.accessToken);
+      expect(result.message).toBe(registerUserResponseStub.message);
       expect(result.userId).toBe(registerUserResponseStub.userId);
     });
 
@@ -92,7 +92,7 @@ describe('AuthController', () => {
 
       const result = await authController.login(userStub);
 
-      expect(authService.login).toHaveBeenCalledWith(userStub.id);
+      expect(authService.login).toHaveBeenCalledWith(userStub);
       expect(authService.login).toHaveBeenCalledTimes(1);
       expect(result).toEqual(loginUserResponseStub);
     });
@@ -108,13 +108,13 @@ describe('AuthController', () => {
       expect(result.userId).toBe(loginUserResponseStub.userId);
     });
 
-    it('should extract user id from current user', async () => {
+    it('should pass full user object to auth service', async () => {
       mockAuthService.login.mockResolvedValue(loginUserResponseStub);
 
       await authController.login(userStub);
 
       const loginCall = mockAuthService.login.mock.calls[0];
-      expect(loginCall[0]).toBe(userStub.id);
+      expect(loginCall[0]).toBe(userStub);
     });
 
     it('should handle login service errors', async () => {
@@ -123,7 +123,7 @@ describe('AuthController', () => {
       await expect(authController.login(userStub)).rejects.toThrow(
         'Login failed',
       );
-      expect(authService.login).toHaveBeenCalledWith(userStub.id);
+      expect(authService.login).toHaveBeenCalledWith(userStub);
     });
   });
 });

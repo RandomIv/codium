@@ -75,9 +75,11 @@ describe('AuthService Integration with UserService', () => {
 
       const result = await authService.register(registerDto);
 
-      expect(result).toHaveProperty('accessToken');
+      expect(result).toHaveProperty('message');
       expect(result).toHaveProperty('userId');
-      expect(result.message).toBe('User registered successfully');
+      expect(result.message).toBe(
+        'User registered successfully. Please login.',
+      );
 
       const user = await userService.findOne(
         { email: registerDto.email },
@@ -128,7 +130,7 @@ describe('AuthService Integration with UserService', () => {
       expect(user).toBeDefined();
       expect(user.email).toBe(registerDto.email);
 
-      const loginResult = await authService.login(user.id);
+      const loginResult = await authService.login(user);
 
       expect(loginResult).toHaveProperty('accessToken');
       expect(loginResult).toHaveProperty('userId');
@@ -232,7 +234,8 @@ describe('AuthService Integration with UserService', () => {
       };
 
       const registerResult = await authService.register(registerDto);
-      expect(registerResult.accessToken).toBeDefined();
+      expect(registerResult.message).toBeDefined();
+      expect(registerResult.userId).toBeDefined();
 
       const userId = registerResult.userId;
 
@@ -246,7 +249,7 @@ describe('AuthService Integration with UserService', () => {
       );
       expect(verifiedUser.id).toBe(userId);
 
-      const loginResult = await authService.login(userId);
+      const loginResult = await authService.login(verifiedUser);
       expect(loginResult.accessToken).toBeDefined();
       expect(loginResult.userId).toBe(userId);
     });
@@ -322,19 +325,34 @@ describe('AuthService Integration with UserService', () => {
     });
 
     it('should generate unique JWT tokens for different users', async () => {
-      const user1Result = await authService.register({
+      await authService.register({
         email: 'jwt1@example.com',
         password: 'password123',
         name: 'JWT Test User 1',
       });
 
-      const user2Result = await authService.register({
+      await authService.register({
         email: 'jwt2@example.com',
         password: 'password123',
         name: 'JWT Test User 2',
       });
 
-      expect(user1Result.accessToken).not.toBe(user2Result.accessToken);
+      // Login both users to get their tokens
+      const user1 = await authService.verifyUser(
+        'jwt1@example.com',
+        'password123',
+      );
+      const user2 = await authService.verifyUser(
+        'jwt2@example.com',
+        'password123',
+      );
+
+      const user1LoginResult = await authService.login(user1);
+      const user2LoginResult = await authService.login(user2);
+
+      expect(user1LoginResult.accessToken).not.toBe(
+        user2LoginResult.accessToken,
+      );
     });
   });
 });

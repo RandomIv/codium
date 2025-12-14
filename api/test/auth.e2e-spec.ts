@@ -54,9 +54,11 @@ describe('Auth API (e2e)', () => {
         .send(registerDto)
         .expect(201);
 
-      expect(response.body).toHaveProperty('accessToken');
+      expect(response.body).toHaveProperty('message');
       expect(response.body).toHaveProperty('userId');
-      expect(response.body.message).toBe('User registered successfully');
+      expect(response.body.message).toBe(
+        'User registered successfully. Please login.',
+      );
 
       const user = await prismaService.user.findUnique({
         where: { id: response.body.userId },
