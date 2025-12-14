@@ -15,13 +15,19 @@ describe('ExecutionTimer', () => {
 
     it('should detect timeout when promise takes too long', async () => {
       const promise = new Promise((resolve) => setTimeout(resolve, 2000));
+      const timeoutMs = 100;
 
-      const result = await ExecutionTimer.executeWithTimeout(promise, 100);
+      const result = await ExecutionTimer.executeWithTimeout(
+        promise,
+        timeoutMs,
+      );
 
       expect(result.result).toBeNull();
       expect(result.timedOut).toBe(true);
-      expect(result.executionTimeMs).toBeGreaterThanOrEqual(100);
-      expect(result.executionTimeMs).toBeLessThan(200);
+
+      expect(result.executionTimeMs).toBeCloseTo(timeoutMs, 0);
+
+      expect(result.executionTimeMs).toBeLessThan(timeoutMs + 100);
     });
 
     it('should measure execution time accurately', async () => {
