@@ -121,14 +121,6 @@ export function ProblemForm({
     }));
   };
 
-  const getValidationMessage = (value: string, field: string): string => {
-    const validation = validateJSON(value);
-    if (!validation.valid && value.trim()) {
-      return validation.error || 'Invalid JSON';
-    }
-    return '';
-  };
-
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto space-y-8">

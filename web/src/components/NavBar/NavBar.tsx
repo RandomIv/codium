@@ -10,7 +10,6 @@ import { Role } from '@/types/enums';
 
 export default function NavBar() {
   const pathname = usePathname();
-  const router = useRouter();
 
   const { user, logout } = useAuthStore();
 
