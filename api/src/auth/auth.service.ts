@@ -18,41 +18,39 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
   ) {}
-  async register(user: RegisterUserDto): Promise<RegisterUserResponse> {
+
+  async register(dto: RegisterUserDto): Promise<RegisterUserResponse> {
     const existingUser = await this.userService.findOne({
-      email: user.email,
+      email: dto.email,
     });
 
     if (existingUser) {
       throw new ConflictException('Email already registered');
     }
 
-    const newUser = await this.userService.create(user);
-    const payload = { sub: newUser.id };
-    const token = this.jwtService.sign(payload);
+    const newUser = await this.userService.create(dto);
+
     return {
-      message: 'User registered successfully',
-      accessToken: token,
-      userId: payload.sub,
+      message: 'User registered successfully. Please login.',
+      userId: newUser.id,
     };
   }
+
   async verifyUser(email: string, password: string): Promise<User> {
     const user = (await this.userService.findOne(
       { email },
       { includePassword: true },
     )) as User;
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
+    if (!user) throw new UnauthorizedException('Invalid credentials');
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordValid) {
+    if (!isPasswordValid)
       throw new UnauthorizedException('Invalid credentials');
-    }
+
     return user;
   }
+
   async login(user: User): Promise<LoginUserResponse> {
     const payload: TokenPayload = {
       sub: user.id,
