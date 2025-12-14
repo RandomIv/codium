@@ -10,12 +10,13 @@ import { useSubmission } from '@/hooks/useSubmission';
 import { useProblem } from '@/hooks/useProblem';
 import { useState } from 'react';
 import { useSubmissionPolling } from '@/hooks/useSubmissionPolling';
-
-const MOCK_USER_ID = '586ecbdc-3813-4264-a77a-4be1c7697df4';
+import { useAuthStore } from '@/store/authStore';
 
 export default function ProblemHeader() {
   const { codes, language, setTestLogs } = useWorkspaceStore();
   const currentCode = codes[language];
+
+  const { user } = useAuthStore();
 
   const params = useParams();
   const slug = params.slug as string;
@@ -28,6 +29,11 @@ export default function ProblemHeader() {
   const { isPolling } = useSubmissionPolling(submissionId);
 
   const handleSubmit = () => {
+    if (!user) {
+      alert('Будь ласка, увійдіть у систему, щоб відправити код.');
+      return;
+    }
+
     if (!problem) return;
 
     setTestLogs(null);
@@ -37,7 +43,7 @@ export default function ProblemHeader() {
         problemId: problem.id,
         code: currentCode,
         language: language,
-        userId: MOCK_USER_ID,
+        userId: user.id,
       },
       {
         onSuccess: (data) => {
@@ -45,6 +51,7 @@ export default function ProblemHeader() {
         },
         onError: (error) => {
           console.error('Submission error:', error);
+          alert('Failed to submit solution');
         },
       },
     );
@@ -55,7 +62,7 @@ export default function ProblemHeader() {
   return (
     <div className="w-full flex items-center justify-center p-4 relative">
       <nav className="absolute left-4">
-        <Link href="/">
+        <Link href="/problems">
           <Home className="text-muted-foreground hover:text-foreground transition-colors" />
         </Link>
       </nav>
