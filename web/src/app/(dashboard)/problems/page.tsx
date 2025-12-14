@@ -1,6 +1,7 @@
 'use client';
 
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -13,8 +14,9 @@ import Link from 'next/link';
 import { useProblems } from '@/hooks/useProblems';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { Problem, Difficulty, Verdict, Submission } from '@/types';
-import { Loader2, CheckCircle2, Circle } from 'lucide-react';
+import { Loader2, CheckCircle2, Circle, Pencil } from 'lucide-react';
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 
 const getDifficultyColor = (difficulty: Difficulty) => {
   switch (difficulty) {
@@ -30,6 +32,7 @@ const getDifficultyColor = (difficulty: Difficulty) => {
 };
 
 export default function ProblemsPage() {
+  const router = useRouter();
   const {
     data: problems,
     isLoading: isProblemsLoading,
@@ -39,6 +42,8 @@ export default function ProblemsPage() {
   const { data: user } = useUserProfile();
 
   const [search, setSearch] = useState('');
+
+  const isAdmin = user?.role === 'ADMIN';
 
   const solvedProblemIds = useMemo(() => {
     const ids = new Set<string>();
@@ -153,6 +158,11 @@ export default function ProblemsPage() {
                 <TableHead className="p-5 font-extrabold text-foreground text-base">
                   Action
                 </TableHead>
+                {isAdmin && (
+                  <TableHead className="p-5 font-extrabold text-foreground text-base w-[100px]">
+                    Edit
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -204,6 +214,23 @@ export default function ProblemsPage() {
                         </span>
                       </Link>
                     </TableCell>
+
+                    {isAdmin && (
+                      <TableCell className="p-5">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            router.push(`/admin/problems/${problem.id}/edit`);
+                          }}
+                          className="font-bold"
+                        >
+                          <Pencil className="w-4 h-4 mr-2" />
+                          Edit
+                        </Button>
+                      </TableCell>
+                    )}
                   </TableRow>
                 );
               })}
@@ -211,7 +238,7 @@ export default function ProblemsPage() {
               {filteredProblems?.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={isAdmin ? 5 : 4}
                     className="p-8 text-center text-muted-foreground"
                   >
                     No problems found matching your search.
