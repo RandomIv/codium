@@ -1,5 +1,6 @@
 import { LoginDto, RegisterDto } from '@/types/dto';
 import { useAuthStore } from '@/store/authStore';
+import { User } from '@/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -41,14 +42,16 @@ export const registerUser = async (payload: RegisterDto) => {
   return res.json();
 };
 
-export const fetchUserProfile = async () => {
+export const fetchUserProfile = async (): Promise<User | null> => {
   const res = await fetch(`${API_URL}/auth/me`, {
     headers: getHeaders(),
   });
 
   if (!res.ok) {
     if (res.status === 401) {
-      throw new Error('Unauthorized');
+      useAuthStore.getState().logout();
+      window.location.href = '/login';
+      return null;
     }
     throw new Error('Failed to fetch profile');
   }
