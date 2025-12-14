@@ -325,13 +325,13 @@ describe('AuthService Integration with UserService', () => {
     });
 
     it('should generate unique JWT tokens for different users', async () => {
-      const user1RegisterResult = await authService.register({
+      await authService.register({
         email: 'jwt1@example.com',
         password: 'password123',
         name: 'JWT Test User 1',
       });
 
-      const user2RegisterResult = await authService.register({
+      await authService.register({
         email: 'jwt2@example.com',
         password: 'password123',
         name: 'JWT Test User 2',
