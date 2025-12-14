@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import '../styles/globals.css';
 import QueryProvider from '@/components/QueryProvider';
+import AuthGuard from '@/components/AuthGuard';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <AuthGuard>{children}</AuthGuard>
+        </QueryProvider>
       </body>
     </html>
   );

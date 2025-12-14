@@ -22,14 +22,16 @@ export const userStub: User = {
 
 export const tokenPayloadStub: TokenPayload = {
   sub: userStub.id,
+  role: userStub.role,
+  name: userStub.name ?? '',
+  email: userStub.email,
 };
 
 export const jwtTokenStub =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
 
 export const registerUserResponseStub: RegisterUserResponse = {
-  message: 'User registered successfully',
-  accessToken: jwtTokenStub,
+  message: 'User registered successfully. Please login.',
   userId: userStub.id,
 };
 

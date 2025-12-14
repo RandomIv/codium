@@ -64,7 +64,6 @@ describe('AuthService', () => {
 
       mockUserService.findOne.mockResolvedValue(null);
       mockUserService.create.mockResolvedValue(userWithoutPassword);
-      mockJwtService.sign.mockReturnValue(jwtTokenStub);
 
       const result = await authService.register(registerUserDtoStub);
 
@@ -72,7 +71,6 @@ describe('AuthService', () => {
         email: registerUserDtoStub.email,
       });
       expect(userService.create).toHaveBeenCalledWith(registerUserDtoStub);
-      expect(jwtService.sign).toHaveBeenCalledWith({ sub: userStub.id });
       expect(result).toEqual(registerUserResponseStub);
     });
 
@@ -90,13 +88,11 @@ describe('AuthService', () => {
         email: registerUserDtoStub.email,
       });
       expect(userService.create).not.toHaveBeenCalled();
-      expect(jwtService.sign).not.toHaveBeenCalled();
     });
 
     it('should check for existing user before creating', async () => {
       mockUserService.findOne.mockResolvedValue(null);
       mockUserService.create.mockResolvedValue(userStub);
-      mockJwtService.sign.mockReturnValue(jwtTokenStub);
 
       await authService.register(registerUserDtoStub);
 
@@ -108,7 +104,6 @@ describe('AuthService', () => {
     it('should return user id in response', async () => {
       mockUserService.findOne.mockResolvedValue(null);
       mockUserService.create.mockResolvedValue(userStub);
-      mockJwtService.sign.mockReturnValue(jwtTokenStub);
 
       const result = await authService.register(registerUserDtoStub);
 
@@ -218,7 +213,7 @@ describe('AuthService', () => {
     it('should login user successfully', async () => {
       mockJwtService.sign.mockReturnValue(jwtTokenStub);
 
-      const result = await authService.login(userStub.id);
+      const result = await authService.login(userStub);
 
       expect(jwtService.sign).toHaveBeenCalledWith(tokenPayloadStub);
       expect(result).toEqual(loginUserResponseStub);
@@ -227,16 +222,16 @@ describe('AuthService', () => {
     it('should generate JWT token with user id as subject', async () => {
       mockJwtService.sign.mockReturnValue(jwtTokenStub);
 
-      await authService.login(userStub.id);
+      await authService.login(userStub);
 
       const signCall = mockJwtService.sign.mock.calls[0];
-      expect(signCall[0]).toEqual({ sub: userStub.id });
+      expect(signCall[0]).toEqual(tokenPayloadStub);
     });
 
     it('should return access token in response', async () => {
       mockJwtService.sign.mockReturnValue(jwtTokenStub);
 
-      const result = await authService.login(userStub.id);
+      const result = await authService.login(userStub);
 
       expect(result.accessToken).toBe(jwtTokenStub);
     });
@@ -244,7 +239,7 @@ describe('AuthService', () => {
     it('should return user id in response', async () => {
       mockJwtService.sign.mockReturnValue(jwtTokenStub);
 
-      const result = await authService.login(userStub.id);
+      const result = await authService.login(userStub);
 
       expect(result.userId).toBe(userStub.id);
     });
@@ -254,10 +249,10 @@ describe('AuthService', () => {
         throw new Error('JWT signing failed');
       });
 
-      await expect(authService.login(userStub.id)).rejects.toThrow(
+      await expect(authService.login(userStub)).rejects.toThrow(
         'JWT signing failed',
       );
-      expect(jwtService.sign).toHaveBeenCalledWith({ sub: userStub.id });
+      expect(jwtService.sign).toHaveBeenCalledWith(tokenPayloadStub);
     });
   });
 });
