@@ -11,6 +11,14 @@ const getHeaders = () => {
   };
 };
 
+export const fetchProblems = async () => {
+  const res = await fetch(`${API_URL}/problems`, {
+    headers: getHeaders(),
+  });
+  if (!res.ok) throw new Error('Failed to fetch problems');
+  return res.json();
+};
+
 export const fetchProblemById = async (id: string) => {
   const res = await fetch(`${API_URL}/problems/${id}`, {
     headers: getHeaders(),
@@ -39,7 +47,8 @@ export const submitSolution = async (payload: CreateSubmissionDto) => {
       useAuthStore.getState().logout();
       window.location.href = '/login';
     }
-    throw new Error('Failed to submit solution');
+    const errorData = await res.json();
+    throw new Error(errorData.message || 'Failed to submit solution');
   }
 
   return res.json();
