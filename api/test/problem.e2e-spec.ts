@@ -8,6 +8,7 @@ import {
   updateProblemDtoStub,
 } from '../src/problem/problem.stubs';
 import { PrismaExceptionFilter } from '../src/common/filters/prisma-exception.filter';
+import { createTestApp } from './utils/create-test-app';
 
 describe('ProblemController (E2E)', () => {
   let app: INestApplication;
@@ -15,18 +16,9 @@ describe('ProblemController (E2E)', () => {
   let authToken: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, transform: true }),
-    );
-    app.useGlobalFilters(new PrismaExceptionFilter());
-    app.setGlobalPrefix('api');
-    await app.init();
-    prisma = app.get<PrismaService>(PrismaService);
+    const testApp = await createTestApp();
+    app = testApp.app;
+    prisma = testApp.prisma;
 
     await request(app.getHttpServer()).post('/api/auth/register').send({
       email: 'test@example.com',
@@ -56,6 +48,7 @@ describe('ProblemController (E2E)', () => {
     it('creates a problem [201]', async () => {
       return request(app.getHttpServer())
         .post('/api/problems')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(createProblemDtoStub)
         .expect(201)
         .expect(({ body }) => {
@@ -219,6 +212,7 @@ describe('ProblemController (E2E)', () => {
 
       return request(app.getHttpServer())
         .patch(`/api/problems/${createdProblem.id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateProblemDtoStub)
         .expect(200)
         .expect(({ body }) => {
@@ -231,6 +225,7 @@ describe('ProblemController (E2E)', () => {
 
       return request(app.getHttpServer())
         .patch(`/api/problems/${fakeId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateProblemDtoStub)
         .expect(404);
     });
@@ -247,6 +242,7 @@ describe('ProblemController (E2E)', () => {
 
       await request(app.getHttpServer())
         .delete(`/api/problems/${createdProblem.id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       const found = await prisma.problem.findUnique({

@@ -7,30 +7,16 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
+import { createTestApp } from './utils/create-test-app';
 
 describe('Auth API (e2e)', () => {
   let app: INestApplication;
   let prismaService: PrismaService;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
-
-    app = moduleFixture.createNestApplication();
-
-    app.setGlobalPrefix('api');
-
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        transform: true,
-      }),
-    );
-
-    await app.init();
-
-    prismaService = app.get<PrismaService>(PrismaService);
+    const testApp = await createTestApp();
+    app = testApp.app;
+    prismaService = testApp.prisma;
   });
 
   afterAll(async () => {
@@ -168,7 +154,7 @@ describe('Auth API (e2e)', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post('/api/auth/register') 
+        .post('/api/auth/register')
         .send(registerDto)
         .expect(201);
 
@@ -181,7 +167,7 @@ describe('Auth API (e2e)', () => {
 
     it('should login with valid credentials', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/auth/login') 
+        .post('/api/auth/login')
         .send({
           email: registeredUser.email,
           password: registeredUser.password,
@@ -238,14 +224,14 @@ describe('Auth API (e2e)', () => {
       };
 
       const registerResponse = await request(app.getHttpServer())
-        .post('/api/auth/register') 
+        .post('/api/auth/register')
         .send(credentials)
         .expect(201);
 
       const userId = registerResponse.body.userId;
 
       const loginResponse = await request(app.getHttpServer())
-        .post('/api/auth/login') 
+        .post('/api/auth/login')
         .send({ email: credentials.email, password: credentials.password })
         .expect(201);
 
@@ -259,7 +245,7 @@ describe('Auth API (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/login') 
+        .post('/api/auth/login')
         .send(credentials)
         .expect(401);
     });

@@ -7,26 +7,34 @@ import { PrismaExceptionFilter } from '../src/common/filters/prisma-exception.fi
 import { createSubmissionDtoStub } from '../src/submission/submission.stubs';
 import { createProblemDtoStub } from '../src/problem/problem.stubs';
 import { SubmissionStatus, Verdict } from '../src/generated/prisma';
+import { createTestApp } from './utils/create-test-app';
 
 describe('SubmissionController (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let testProblemId: string;
   let testUserId: string;
+  let authToken: string;
 
   beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+    const testApp = await createTestApp();
+    app = testApp.app;
+    prisma = testApp.prisma;
 
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, transform: true }),
-    );
-    app.useGlobalFilters(new PrismaExceptionFilter());
-    app.setGlobalPrefix('api');
-    await app.init();
-    prisma = app.get<PrismaService>(PrismaService);
+    await request(app.getHttpServer()).post('/api/auth/register').send({
+      email: 'test@example.com',
+      password: 'password123',
+      name: 'Test User',
+    });
+
+    const loginResponse = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({
+        email: 'test@example.com',
+        password: 'password123',
+      });
+
+    authToken = loginResponse.body.accessToken;
   });
 
   afterAll(async () => {
@@ -36,7 +44,6 @@ describe('SubmissionController (E2E)', () => {
   beforeEach(async () => {
     await prisma.submission.deleteMany();
     await prisma.problem.deleteMany();
-    await prisma.user.deleteMany();
 
     const { testCases, ...problemData } = createProblemDtoStub;
     const problem = await prisma.problem.create({
@@ -44,12 +51,8 @@ describe('SubmissionController (E2E)', () => {
     });
     testProblemId = problem.id;
 
-    const user = await prisma.user.create({
-      data: {
-        email: 'test@example.com',
-        password: 'hashedpassword123',
-        name: 'Test User',
-      },
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { email: 'test@example.com' },
     });
     testUserId = user.id;
   });
@@ -64,6 +67,7 @@ describe('SubmissionController (E2E)', () => {
 
       return request(app.getHttpServer())
         .post('/api/submissions')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(submissionData)
         .expect(201)
         .expect(({ body }) => {
@@ -86,6 +90,7 @@ describe('SubmissionController (E2E)', () => {
 
       return request(app.getHttpServer())
         .post('/api/submissions')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(invalidSubmission)
         .expect(400);
     });
@@ -93,6 +98,7 @@ describe('SubmissionController (E2E)', () => {
     it('returns 400 for missing required fields', async () => {
       return request(app.getHttpServer())
         .post('/api/submissions')
+        .set('Authorization', `Bearer ${authToken}`)
         .send({
           code: 'def test(): pass',
         })
@@ -108,6 +114,7 @@ describe('SubmissionController (E2E)', () => {
 
       return request(app.getHttpServer())
         .post('/api/submissions')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(invalidSubmission)
         .expect(400);
     });
@@ -125,6 +132,7 @@ describe('SubmissionController (E2E)', () => {
 
       return request(app.getHttpServer())
         .get(`/api/submissions/${createdSubmission.id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
         .expect(({ body }) => {
           expect(body.id).toBe(createdSubmission.id);
@@ -138,6 +146,7 @@ describe('SubmissionController (E2E)', () => {
 
       return request(app.getHttpServer())
         .get(`/api/submissions/${fakeId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(404);
     });
 
@@ -157,6 +166,7 @@ describe('SubmissionController (E2E)', () => {
 
       return request(app.getHttpServer())
         .get(`/api/submissions/${createdSubmission.id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
         .expect(({ body }) => {
           expect(body.verdict).toBe('ACCEPTED');
