@@ -1,13 +1,10 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { PrismaExceptionFilter } from '../src/common/filters/prisma-exception.filter';
 import { createSubmissionDtoStub } from '../src/submission/submission.stubs';
 import { createProblemDtoStub } from '../src/problem/problem.stubs';
 import { SubmissionStatus, Verdict } from '../src/generated/prisma';
-import { createTestApp } from './utils/create-test-app';
+import { createTestAppWithAuth } from './utils/create-test-app';
 
 describe('SubmissionController (E2E)', () => {
   let app: INestApplication;
@@ -16,25 +13,24 @@ describe('SubmissionController (E2E)', () => {
   let testUserId: string;
   let authToken: string;
 
+  const createSubmission = (overrides = {}) => ({
+    ...createSubmissionDtoStub,
+    problemId: testProblemId,
+    userId: testUserId,
+    ...overrides,
+  });
+
+  const createSubmissionInDb = async (overrides = {}) => {
+    return prisma.submission.create({
+      data: createSubmission(overrides),
+    });
+  };
+
   beforeAll(async () => {
-    const testApp = await createTestApp();
+    const testApp = await createTestAppWithAuth();
     app = testApp.app;
     prisma = testApp.prisma;
-
-    await request(app.getHttpServer()).post('/api/auth/register').send({
-      email: 'test@example.com',
-      password: 'password123',
-      name: 'Test User',
-    });
-
-    const loginResponse = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({
-        email: 'test@example.com',
-        password: 'password123',
-      });
-
-    authToken = loginResponse.body.accessToken;
+    authToken = testApp.authToken;
   });
 
   afterAll(async () => {
@@ -58,44 +54,31 @@ describe('SubmissionController (E2E)', () => {
   });
 
   describe('POST /api/submissions', () => {
-    it('creates a submission [201]', async () => {
-      const submissionData = {
-        ...createSubmissionDtoStub,
-        problemId: testProblemId,
-        userId: testUserId,
-      };
-
+    it('should create a submission and return 201 status', async () => {
       return request(app.getHttpServer())
         .post('/api/submissions')
         .set('Authorization', `Bearer ${authToken}`)
-        .send(submissionData)
+        .send(createSubmission())
         .expect(201)
         .expect(({ body }) => {
           expect(body.id).toEqual(expect.any(String));
-          expect(body.code).toBe(submissionData.code);
-          expect(body.language).toBe(submissionData.language);
+          expect(body.code).toBe(createSubmissionDtoStub.code);
+          expect(body.language).toBe(createSubmissionDtoStub.language);
           expect(body.problemId).toBe(testProblemId);
           expect(body.userId).toBe(testUserId);
           expect(body.status).toBe('PENDING');
         });
     });
 
-    it('returns 400 for invalid language', async () => {
-      const invalidSubmission = {
-        ...createSubmissionDtoStub,
-        problemId: testProblemId,
-        userId: testUserId,
-        language: 'INVALID_LANGUAGE',
-      };
-
+    it('should return 400 for invalid language', async () => {
       return request(app.getHttpServer())
         .post('/api/submissions')
         .set('Authorization', `Bearer ${authToken}`)
-        .send(invalidSubmission)
+        .send(createSubmission({ language: 'INVALID_LANGUAGE' }))
         .expect(400);
     });
 
-    it('returns 400 for missing required fields', async () => {
+    it('should return 400 for missing required fields', async () => {
       return request(app.getHttpServer())
         .post('/api/submissions')
         .set('Authorization', `Bearer ${authToken}`)
@@ -105,30 +88,18 @@ describe('SubmissionController (E2E)', () => {
         .expect(400);
     });
 
-    it('returns 400 for invalid UUID format', async () => {
-      const invalidSubmission = {
-        ...createSubmissionDtoStub,
-        problemId: 'not-a-uuid',
-        userId: testUserId,
-      };
-
+    it('should return 400 for invalid UUID format', async () => {
       return request(app.getHttpServer())
         .post('/api/submissions')
         .set('Authorization', `Bearer ${authToken}`)
-        .send(invalidSubmission)
+        .send(createSubmission({ problemId: 'not-a-uuid' }))
         .expect(400);
     });
   });
 
   describe('GET /api/submissions/:id', () => {
-    it('returns a submission by id [200]', async () => {
-      const createdSubmission = await prisma.submission.create({
-        data: {
-          ...createSubmissionDtoStub,
-          problemId: testProblemId,
-          userId: testUserId,
-        },
-      });
+    it('should return a submission by id with 200 status', async () => {
+      const createdSubmission = await createSubmissionInDb();
 
       return request(app.getHttpServer())
         .get(`/api/submissions/${createdSubmission.id}`)
@@ -141,7 +112,7 @@ describe('SubmissionController (E2E)', () => {
         });
     });
 
-    it('returns 404 for non-existent id', () => {
+    it('should return 404 for non-existent id', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174999';
 
       return request(app.getHttpServer())
@@ -150,18 +121,13 @@ describe('SubmissionController (E2E)', () => {
         .expect(404);
     });
 
-    it('returns submission with all fields', async () => {
-      const createdSubmission = await prisma.submission.create({
-        data: {
-          ...createSubmissionDtoStub,
-          problemId: testProblemId,
-          userId: testUserId,
-          status: SubmissionStatus.COMPLETED,
-          verdict: Verdict.ACCEPTED,
-          time: 100,
-          memory: 2048,
-          testCasesPassed: 5,
-        },
+    it('should return submission with all fields', async () => {
+      const createdSubmission = await createSubmissionInDb({
+        status: SubmissionStatus.COMPLETED,
+        verdict: Verdict.ACCEPTED,
+        time: 100,
+        memory: 2048,
+        testCasesPassed: 5,
       });
 
       return request(app.getHttpServer())
@@ -178,14 +144,8 @@ describe('SubmissionController (E2E)', () => {
   });
 
   describe('PATCH /api/submissions/:id', () => {
-    it('updates a submission [200]', async () => {
-      const createdSubmission = await prisma.submission.create({
-        data: {
-          ...createSubmissionDtoStub,
-          problemId: testProblemId,
-          userId: testUserId,
-        },
-      });
+    it('should update a submission and return 200 status', async () => {
+      const createdSubmission = await createSubmissionInDb();
 
       const updateData = {
         status: SubmissionStatus.COMPLETED,
@@ -209,14 +169,8 @@ describe('SubmissionController (E2E)', () => {
         });
     });
 
-    it('returns 401 for unauthorized requests', async () => {
-      const createdSubmission = await prisma.submission.create({
-        data: {
-          ...createSubmissionDtoStub,
-          problemId: testProblemId,
-          userId: testUserId,
-        },
-      });
+    it('should return 401 for unauthorized requests without system API key', async () => {
+      const createdSubmission = await createSubmissionInDb();
 
       return request(app.getHttpServer())
         .patch(`/api/submissions/${createdSubmission.id}`)
@@ -224,7 +178,7 @@ describe('SubmissionController (E2E)', () => {
         .expect(401);
     });
 
-    it('returns 404 when id does not exist', () => {
+    it('should return 404 when id does not exist', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174999';
 
       return request(app.getHttpServer())
@@ -234,14 +188,8 @@ describe('SubmissionController (E2E)', () => {
         .expect(404);
     });
 
-    it('updates submission with test logs', async () => {
-      const createdSubmission = await prisma.submission.create({
-        data: {
-          ...createSubmissionDtoStub,
-          problemId: testProblemId,
-          userId: testUserId,
-        },
-      });
+    it('should update submission with test logs', async () => {
+      const createdSubmission = await createSubmissionInDb();
 
       const updateData = {
         status: SubmissionStatus.COMPLETED,
@@ -273,14 +221,8 @@ describe('SubmissionController (E2E)', () => {
         });
     });
 
-    it('returns 400 for invalid status enum', async () => {
-      const createdSubmission = await prisma.submission.create({
-        data: {
-          ...createSubmissionDtoStub,
-          problemId: testProblemId,
-          userId: testUserId,
-        },
-      });
+    it('should return 400 for invalid status enum', async () => {
+      const createdSubmission = await createSubmissionInDb();
 
       return request(app.getHttpServer())
         .patch(`/api/submissions/${createdSubmission.id}`)
@@ -289,14 +231,8 @@ describe('SubmissionController (E2E)', () => {
         .expect(400);
     });
 
-    it('updates only provided fields', async () => {
-      const createdSubmission = await prisma.submission.create({
-        data: {
-          ...createSubmissionDtoStub,
-          problemId: testProblemId,
-          userId: testUserId,
-        },
-      });
+    it('should update only provided fields', async () => {
+      const createdSubmission = await createSubmissionInDb();
 
       const partialUpdate = {
         status: SubmissionStatus.IN_PROGRESS,

@@ -55,7 +55,7 @@ describe('SubmissionService', () => {
   });
 
   describe('findOne', () => {
-    it('returns submission by id', async () => {
+    it('should return a submission by id', async () => {
       mockPrismaService.submission.findUniqueOrThrow.mockResolvedValue(
         submissionStub,
       );
@@ -68,7 +68,7 @@ describe('SubmissionService', () => {
       });
     });
 
-    it('propagates prisma error when submission does not exist', async () => {
+    it('should propagate prisma error when submission does not exist', async () => {
       const prismaError = new PrismaClientKnownRequestError('Not Found', {
         code: 'P2025',
         clientVersion: '5.0.0',
@@ -83,7 +83,7 @@ describe('SubmissionService', () => {
   });
 
   describe('create', () => {
-    it('creates a submission', async () => {
+    it('should create a submission', async () => {
       mockPrismaService.submission.create.mockResolvedValue(submissionStub);
       mockJudgeQueue.add.mockResolvedValue({ id: submissionStub.id });
 
@@ -95,7 +95,7 @@ describe('SubmissionService', () => {
       });
     });
 
-    it('adds job to judge queue after creating submission', async () => {
+    it('should add job to judge queue after creating submission', async () => {
       mockPrismaService.submission.create.mockResolvedValue(submissionStub);
       mockJudgeQueue.add.mockResolvedValue({ id: submissionStub.id });
 
@@ -115,7 +115,7 @@ describe('SubmissionService', () => {
       );
     });
 
-    it('creates submission with correct initial status', async () => {
+    it('should create submission with correct initial status', async () => {
       mockPrismaService.submission.create.mockResolvedValue(submissionStub);
       mockJudgeQueue.add.mockResolvedValue({ id: submissionStub.id });
 
@@ -126,7 +126,7 @@ describe('SubmissionService', () => {
   });
 
   describe('update', () => {
-    it('updates a submission', async () => {
+    it('should update a submission', async () => {
       mockPrismaService.submission.update.mockResolvedValue(
         updatedSubmissionStub,
       );
@@ -149,7 +149,7 @@ describe('SubmissionService', () => {
       });
     });
 
-    it('updates submission with test logs', async () => {
+    it('should update submission with test logs', async () => {
       const updatedWithLogs = {
         ...updatedSubmissionStub,
         testLogs: updateSubmissionDtoStub.testLogs,
@@ -170,7 +170,7 @@ describe('SubmissionService', () => {
       });
     });
 
-    it('propagates prisma error when submission does not exist', async () => {
+    it('should propagate prisma error when submission does not exist', async () => {
       const prismaError = new PrismaClientKnownRequestError('Not Found', {
         code: 'P2025',
         clientVersion: '5.0.0',
@@ -183,7 +183,7 @@ describe('SubmissionService', () => {
       ).rejects.toBe(prismaError);
     });
 
-    it('updates submission without test logs', async () => {
+    it('should update submission without test logs', async () => {
       const updateWithoutLogs = {
         status: updateSubmissionDtoStub.status,
         verdict: updateSubmissionDtoStub.verdict,

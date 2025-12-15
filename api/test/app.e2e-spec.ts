@@ -18,7 +18,7 @@ describe('AppController (e2e)', () => {
     await app.close();
   });
 
-  it('starts application', () => {
+  it('should start application', () => {
     expect(app).toBeDefined();
   });
 });
