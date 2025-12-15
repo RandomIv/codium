@@ -18,7 +18,12 @@ export async function registerAndLogin(page: Page) {
   await page.getByLabel('Password', { exact: true }).fill(user.password);
   await page.getByLabel('Confirm Password').fill(user.password);
   await page.getByRole('button', { name: 'Sign Up' }).click();
-  await expect(page).toHaveURL(/\/login/);
+
+  await page.waitForURL(/\/(login|problems)/, { timeout: 10000 });
+
+  if (page.url().includes('/problems')) {
+    return user;
+  }
 
   await page.getByLabel('Email').fill(user.email);
   await page.getByLabel('Password').fill(user.password);

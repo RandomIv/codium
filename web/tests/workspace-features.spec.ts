@@ -12,13 +12,13 @@ test.describe('Workspace UI Features', () => {
     await page.goto(`/problems/${problemSlug}`);
 
     await expect(page.locator('.monaco-editor')).toContainText(
-      'function twoSum',
+      'function solution',
     );
 
     await page.getByRole('combobox').click();
     await page.getByRole('option', { name: 'Python' }).click();
 
-    await expect(page.locator('.monaco-editor')).toContainText('def twoSum');
+    await expect(page.locator('.monaco-editor')).toContainText('def solution');
   });
 
   test('Reset code button restores starter template', async ({ page }) => {
@@ -30,7 +30,7 @@ test.describe('Workspace UI Features', () => {
     await page.keyboard.insertText('console.log("Broken code");');
 
     await expect(page.locator('.monaco-editor')).not.toContainText(
-      'function twoSum',
+      'function solution',
     );
 
     page.on('dialog', (dialog) => dialog.accept());
@@ -38,7 +38,7 @@ test.describe('Workspace UI Features', () => {
     await page.locator('button:has(.lucide-rotate-ccw)').click();
 
     await expect(page.locator('.monaco-editor')).toContainText(
-      'function twoSum',
+      'function solution',
     );
   });
 });
