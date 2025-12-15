@@ -50,6 +50,26 @@ export class PrismaExceptionFilter implements ExceptionFilter {
         break;
       }
 
+      case 'P2000': {
+        status = HttpStatus.BAD_REQUEST;
+        message =
+          "The provided value for the column is too long for the column's type.";
+        break;
+      }
+
+      case 'P2001': {
+        status = HttpStatus.NOT_FOUND;
+        message =
+          'The record searched for in the where condition does not exist.';
+        break;
+      }
+
+      case 'P2004': {
+        status = HttpStatus.BAD_REQUEST;
+        message = 'A constraint failed on the database.';
+        break;
+      }
+
       default: {
         message = exception.message;
         break;
