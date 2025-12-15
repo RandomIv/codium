@@ -10,7 +10,10 @@ import { UserModule } from './user/user.module';
 @Module({
   imports: [
     PrismaModule,
-    ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: process.env.NODE_ENV === 'test' ? '.env.test.local' : '.env',
+    }),
     BullModule.forRoot({
       connection: {
         host: 'localhost',

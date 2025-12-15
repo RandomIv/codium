@@ -337,7 +337,7 @@ describe('AuthService Integration with UserService', () => {
         name: 'JWT Test User 2',
       });
 
-      // Login both users to get their tokens
+      
       const user1 = await authService.verifyUser(
         'jwt1@example.com',
         'password123',

@@ -40,16 +40,19 @@ export class ProblemController {
     return this.problemService.findOne(slug);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createProblemDto: CreateProblemDto) {
     return this.problemService.create(createProblemDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProblemDto: UpdateProblemDto) {
     return this.problemService.update(id, updateProblemDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.problemService.remove(id);

@@ -210,7 +210,7 @@ describe('Full System E2E', () => {
       const updateCall = (apiService.updateSubmission as jest.Mock).mock
         .calls[1][1];
 
-      // FIX: Check that time is tracked (>0) instead of comparing small values which causes flakiness
+      
       expect(updateCall.time).toBeGreaterThan(0);
       expect(updateCall.testLogs[0].executionTime).toBeGreaterThanOrEqual(0);
       expect(updateCall.testLogs[1].executionTime).toBeGreaterThanOrEqual(0);

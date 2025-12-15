@@ -1,19 +1,24 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
-import { App } from 'supertest/types';
-import { JudgeModule } from '../src/judge.module';
+import { ExecutionModule } from '../src/execution/execution.module';
+import { ConfigModule } from '@nestjs/config';
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+  let app: INestApplication;
+  let moduleFixture: TestingModule;
 
   beforeEach(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [JudgeModule],
+    moduleFixture = await Test.createTestingModule({
+      imports: [ExecutionModule, ConfigModule.forRoot({ isGlobal: true })],
     }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
+  });
+
+  afterEach(async () => {
+    await app.close();
+    await moduleFixture.close();
   });
 
   it('should be defined', () => {

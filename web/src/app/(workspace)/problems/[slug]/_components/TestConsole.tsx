@@ -25,7 +25,7 @@ export function TestConsole() {
       case Verdict.TIME_LIMIT_EXCEEDED:
         return 'text-yellow-500';
       default:
-        return 'text-destructive'; // Для помилок
+        return 'text-destructive'; 
     }
   };
 
@@ -43,8 +43,8 @@ export function TestConsole() {
     }
   };
 
-  // Перевіряємо, чи є у нас глобальна помилка (коли код навіть не запустив тести нормально)
-  // Зазвичай це Verdict.COMPILATION_ERROR або RUNTIME_ERROR з наявним текстом помилки
+  
+  
   const hasGlobalError = testLogs?.some(
     (log) =>
       log.status === Verdict.COMPILATION_ERROR ||
@@ -57,8 +57,8 @@ export function TestConsole() {
 
       <Tabs
         defaultValue="cases"
-        // Якщо прийшли логи, автоматично перемикаємо на результат.
-        // (Тут можна додати логіку: value={testLogs ? "result" : "cases"})
+        
+        
         className="flex flex-1 flex-col overflow-hidden rounded-3xl bg-muted/30 p-2"
       >
         <div className="flex justify-center pb-2">
@@ -74,7 +74,7 @@ export function TestConsole() {
               className={cn(
                 'rounded-full px-6 py-1.5 text-xs font-bold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-md transition-all',
                 hasGlobalError &&
-                  'text-destructive data-[state=active]:text-destructive', // Червоний текст якщо помилка
+                  'text-destructive data-[state=active]:text-destructive', 
               )}
             >
               Test Result
@@ -88,7 +88,7 @@ export function TestConsole() {
           </TabsList>
         </div>
 
-        {/* --- CASES TAB --- */}
+        {}
         <TabsContent
           value="cases"
           className="flex-1 overflow-y-auto rounded-2xl bg-card p-4 shadow-inner m-0 ring-1 ring-inset ring-border/20 scrollbar-content"
@@ -98,7 +98,7 @@ export function TestConsole() {
               <p className="text-muted-foreground text-sm text-center italic">
                 Example test cases
               </p>
-              {/* Тут бажано виводити problem.testCases динамічно */}
+              {}
               <div className="rounded-xl bg-muted/50 p-3 font-mono text-sm text-foreground border border-border/50">
                 nums = [2,7,11,15], target = 9
               </div>
@@ -109,7 +109,7 @@ export function TestConsole() {
           </div>
         </TabsContent>
 
-        {/* --- RESULT TAB --- */}
+        {}
         <TabsContent
           value="result"
           className="flex-1 overflow-y-auto rounded-2xl bg-card p-4 shadow-inner m-0 ring-1 ring-inset ring-border/20 scrollbar-content"
@@ -123,7 +123,7 @@ export function TestConsole() {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* БЛОК ГЛОБАЛЬНОЇ ПОМИЛКИ */}
+              {}
               {hasGlobalError &&
                 testLogs.map(
                   (log, idx) =>
@@ -138,7 +138,7 @@ export function TestConsole() {
                           {log.status.replace(/_/g, ' ')}
                         </div>
                         <div className="p-4 font-mono text-sm text-destructive whitespace-pre-wrap leading-relaxed">
-                          {/* Виводимо або compileOutput, або error */}
+                          {}
                           {log.compileOutput ||
                             log.error ||
                             'Unknown error occurred'}
@@ -147,7 +147,7 @@ export function TestConsole() {
                     ),
                 )}
 
-              {/* ЗВИЧАЙНИЙ СПИСОК (Якщо немає глобального крашу, або показуємо деталі інших кейсів) */}
+              {}
               {!hasGlobalError &&
                 testLogs.map((log, index) => (
                   <div

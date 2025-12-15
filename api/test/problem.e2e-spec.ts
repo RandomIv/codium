@@ -1,47 +1,34 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import {
   createProblemDtoStub,
   updateProblemDtoStub,
 } from '../src/problem/problem.stubs';
-import { PrismaExceptionFilter } from '../src/common/filters/prisma-exception.filter';
+import { createTestAppWithAuth } from './utils/create-test-app';
 
 describe('ProblemController (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authToken: string;
 
-  beforeAll(async () => {
-    const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
-    }).compile();
+  const createProblemData = (overrides = {}) => ({
+    ...createProblemDtoStub,
+    testCases: undefined,
+    ...overrides,
+  });
 
-    app = moduleFixture.createNestApplication();
-    app.useGlobalPipes(
-      new ValidationPipe({ whitelist: true, transform: true }),
-    );
-    app.useGlobalFilters(new PrismaExceptionFilter());
-    app.setGlobalPrefix('api');
-    await app.init();
-    prisma = app.get<PrismaService>(PrismaService);
-
-    await request(app.getHttpServer()).post('/api/auth/register').send({
-      email: 'test@example.com',
-      password: 'password123',
-      name: 'Test User',
+  const createProblemInDb = async (overrides = {}) => {
+    return prisma.problem.create({
+      data: createProblemData(overrides),
     });
+  };
 
-    const loginResponse = await request(app.getHttpServer())
-      .post('/api/auth/login')
-      .send({
-        email: 'test@example.com',
-        password: 'password123',
-      });
-
-    authToken = loginResponse.body.accessToken;
+  beforeAll(async () => {
+    const testApp = await createTestAppWithAuth();
+    app = testApp.app;
+    prisma = testApp.prisma;
+    authToken = testApp.authToken;
   });
 
   afterAll(async () => {
@@ -53,9 +40,10 @@ describe('ProblemController (E2E)', () => {
   });
 
   describe('POST /api/problems', () => {
-    it('creates a problem [201]', async () => {
+    it('should create a problem and return 201 status', async () => {
       return request(app.getHttpServer())
         .post('/api/problems')
+        .set('Authorization', `Bearer ${authToken}`)
         .send(createProblemDtoStub)
         .expect(201)
         .expect(({ body }) => {
@@ -66,13 +54,8 @@ describe('ProblemController (E2E)', () => {
   });
 
   describe('GET /api/problems', () => {
-    it('returns a list of problems [200]', async () => {
-      await prisma.problem.create({
-        data: {
-          ...createProblemDtoStub,
-          testCases: undefined,
-        },
-      });
+    it('should return a list of problems with 200 status', async () => {
+      await createProblemInDb();
 
       const res = await request(app.getHttpServer())
         .get('/api/problems')
@@ -84,13 +67,8 @@ describe('ProblemController (E2E)', () => {
   });
 
   describe('GET /api/problems/:slug', () => {
-    it('returns a problem by slug [200]', async () => {
-      const createdProblem = await prisma.problem.create({
-        data: {
-          ...createProblemDtoStub,
-          testCases: undefined,
-        },
-      });
+    it('should return a problem by slug with 200 status', async () => {
+      const createdProblem = await createProblemInDb();
 
       return request(app.getHttpServer())
         .get(`/api/problems/${createdProblem.slug}`)
@@ -101,20 +79,17 @@ describe('ProblemController (E2E)', () => {
         });
     });
 
-    it('returns 404 for non-existent slug', () => {
+    it('should return 404 for non-existent slug', () => {
       return request(app.getHttpServer())
         .get('/api/problems/fake-slug-12345')
         .expect(404);
     });
   });
+
   describe('GET /api/problems/system/:id', () => {
-    it('returns a problem by id [200]', async () => {
-      const createdProblem = await prisma.problem.create({
-        data: {
-          ...createProblemDtoStub,
-          testCases: undefined,
-        },
-      });
+    it('should return a problem by id with 200 status when using system API key', async () => {
+      const createdProblem = await createProblemInDb();
+
       return request(app.getHttpServer())
         .get(`/api/problems/system/${createdProblem.id}`)
         .set('x-system-api-key', process.env.SYSTEM_API_KEY ?? '')
@@ -124,19 +99,16 @@ describe('ProblemController (E2E)', () => {
           expect(body.slug).toBe(createdProblem.slug);
         });
     });
-    it('returns 401 for unauthorized requests', async () => {
-      const createdProblem = await prisma.problem.create({
-        data: {
-          ...createProblemDtoStub,
-          testCases: undefined,
-        },
-      });
+
+    it('should return 401 for unauthorized requests without system API key', async () => {
+      const createdProblem = await createProblemInDb();
 
       return request(app.getHttpServer())
         .get(`/api/problems/system/${createdProblem.id}`)
         .expect(401);
     });
-    it('returns 404 for non-existent id', () => {
+
+    it('should return 404 for non-existent id with system API key', () => {
       return request(app.getHttpServer())
         .get(`/api/problems/system/fake-id-12345`)
         .set('x-system-api-key', process.env.SYSTEM_API_KEY ?? '')
@@ -145,24 +117,21 @@ describe('ProblemController (E2E)', () => {
   });
 
   describe('GET /api/problems/admin/:id', () => {
-    it('returns a problem by id with JWT auth [200]', async () => {
-      const createdProblem = await prisma.problem.create({
-        data: {
-          ...createProblemDtoStub,
-          testCases: {
-            create: [
-              {
-                input: '[[2,7,11,15], 9]',
-                output: '[0,1]',
-                isPublic: true,
-              },
-              {
-                input: '[[3,2,4], 6]',
-                output: '[1,2]',
-                isPublic: false,
-              },
-            ],
-          },
+    it('should return a problem by id with JWT auth and 200 status', async () => {
+      const createdProblem = await createProblemInDb({
+        testCases: {
+          create: [
+            {
+              input: '[[2,7,11,15], 9]',
+              output: '[0,1]',
+              isPublic: true,
+            },
+            {
+              input: '[[3,2,4], 6]',
+              output: '[1,2]',
+              isPublic: false,
+            },
+          ],
         },
       });
 
@@ -178,20 +147,15 @@ describe('ProblemController (E2E)', () => {
         });
     });
 
-    it('returns 401 for unauthorized requests', async () => {
-      const createdProblem = await prisma.problem.create({
-        data: {
-          ...createProblemDtoStub,
-          testCases: undefined,
-        },
-      });
+    it('should return 401 for unauthorized requests without JWT token', async () => {
+      const createdProblem = await createProblemInDb();
 
       return request(app.getHttpServer())
         .get(`/api/problems/admin/${createdProblem.id}`)
         .expect(401);
     });
 
-    it('returns 404 for non-existent id', () => {
+    it('should return 404 for non-existent id with valid JWT token', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       return request(app.getHttpServer())
@@ -200,25 +164,24 @@ describe('ProblemController (E2E)', () => {
         .expect(404);
     });
   });
+
   describe('PATCH /api/problems/:id', () => {
-    it('updates a problem [200]', async () => {
-      const createdProblem = await prisma.problem.create({
-        data: {
-          ...createProblemDtoStub,
-          testCases: {
-            create: [
-              {
-                input: '[[2,7,11,15], 9]',
-                output: '[0,1]',
-                isPublic: true,
-              },
-            ],
-          },
+    it('should update a problem and return 200 status', async () => {
+      const createdProblem = await createProblemInDb({
+        testCases: {
+          create: [
+            {
+              input: '[[2,7,11,15], 9]',
+              output: '[0,1]',
+              isPublic: true,
+            },
+          ],
         },
       });
 
       return request(app.getHttpServer())
         .patch(`/api/problems/${createdProblem.id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateProblemDtoStub)
         .expect(200)
         .expect(({ body }) => {
@@ -226,27 +189,24 @@ describe('ProblemController (E2E)', () => {
         });
     });
 
-    it('returns 404 when id does not exist', () => {
+    it('should return 404 when id does not exist', () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174000';
 
       return request(app.getHttpServer())
         .patch(`/api/problems/${fakeId}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .send(updateProblemDtoStub)
         .expect(404);
     });
   });
 
   describe('DELETE /api/problems/:id', () => {
-    it('deletes a problem [200]', async () => {
-      const createdProblem = await prisma.problem.create({
-        data: {
-          ...createProblemDtoStub,
-          testCases: undefined,
-        },
-      });
+    it('should delete a problem and return 200 status', async () => {
+      const createdProblem = await createProblemInDb();
 
       await request(app.getHttpServer())
         .delete(`/api/problems/${createdProblem.id}`)
+        .set('Authorization', `Bearer ${authToken}`)
         .expect(200);
 
       const found = await prisma.problem.findUnique({

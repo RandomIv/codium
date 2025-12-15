@@ -45,7 +45,7 @@ describe('SubmissionController', () => {
   });
 
   describe('findOne', () => {
-    it('returns submission by id', async () => {
+    it('should return a submission by id', async () => {
       mockSubmissionService.findOne.mockResolvedValue(submissionStub);
 
       const result = await controller.findOne(submissionStub.id);
@@ -54,7 +54,7 @@ describe('SubmissionController', () => {
       expect(service.findOne).toHaveBeenCalledWith(submissionStub.id);
     });
 
-    it('throws NotFoundException when submission does not exist', async () => {
+    it('should throw NotFoundException when submission does not exist', async () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174999';
       mockSubmissionService.findOne.mockRejectedValue(
         new NotFoundException(`Submission ${fakeId} not found`),
@@ -68,19 +68,24 @@ describe('SubmissionController', () => {
   });
 
   describe('create', () => {
-    it('creates a submission', async () => {
+    const mockUser = { id: 'user-id', email: 'test@test.com' } as any;
+
+    it('should create a submission', async () => {
       mockSubmissionService.create.mockResolvedValue(submissionStub);
 
-      const result = await controller.create(createSubmissionDtoStub);
+      const result = await controller.create(createSubmissionDtoStub, mockUser);
 
       expect(result).toEqual(submissionStub);
-      expect(service.create).toHaveBeenCalledWith(createSubmissionDtoStub);
+      expect(service.create).toHaveBeenCalledWith({
+        ...createSubmissionDtoStub,
+        userId: mockUser.id,
+      });
     });
 
-    it('creates submission and adds job to queue', async () => {
+    it('should create submission and add job to queue', async () => {
       mockSubmissionService.create.mockResolvedValue(submissionStub);
 
-      const result = await controller.create(createSubmissionDtoStub);
+      const result = await controller.create(createSubmissionDtoStub, mockUser);
 
       expect(result).toEqual(submissionStub);
       expect(result.status).toBe('PENDING');
@@ -89,7 +94,7 @@ describe('SubmissionController', () => {
   });
 
   describe('patch', () => {
-    it('updates a submission', async () => {
+    it('should update a submission', async () => {
       mockSubmissionService.update.mockResolvedValue(updatedSubmissionStub);
 
       const result = await controller.patch(
@@ -104,7 +109,7 @@ describe('SubmissionController', () => {
       );
     });
 
-    it('throws NotFoundException when updating non-existent submission', async () => {
+    it('should throw NotFoundException when updating non-existent submission', async () => {
       const fakeId = '123e4567-e89b-12d3-a456-426614174999';
       mockSubmissionService.update.mockRejectedValue(
         new NotFoundException(`Submission ${fakeId} not found`),
@@ -119,7 +124,7 @@ describe('SubmissionController', () => {
       );
     });
 
-    it('updates submission with test logs', async () => {
+    it('should update submission with test logs', async () => {
       const updatedWithLogs = {
         ...updatedSubmissionStub,
         testLogs: updateSubmissionDtoStub.testLogs,

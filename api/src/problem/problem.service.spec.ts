@@ -51,7 +51,7 @@ describe('ProblemService', () => {
     expect(service).toBeDefined();
   });
   describe('findAll', () => {
-    it('returns array of problems', async () => {
+    it('should return array of problems', async () => {
       mockPrismaService.problem.findMany.mockResolvedValue([
         previewProblemStub,
       ]);
@@ -65,7 +65,7 @@ describe('ProblemService', () => {
       });
     });
 
-    it('returns empty array when no problems exist', async () => {
+    it('should return empty array when no problems exist', async () => {
       mockPrismaService.problem.findMany.mockResolvedValue([]);
 
       const result = await service.findAll();
@@ -76,7 +76,7 @@ describe('ProblemService', () => {
   });
 
   describe('findOne', () => {
-    it('returns problem by slug', async () => {
+    it('should return problem by slug', async () => {
       mockPrismaService.problem.findUniqueOrThrow.mockResolvedValue(
         detailProblemStub,
       );
@@ -90,7 +90,7 @@ describe('ProblemService', () => {
       });
     });
 
-    it('propagates prisma error when problem does not exist', async () => {
+    it('should propagate prisma error when problem does not exist', async () => {
       const prismaError = new PrismaClientKnownRequestError('Not Found', {
         code: 'P2025',
         clientVersion: '5.0.0',
@@ -105,7 +105,7 @@ describe('ProblemService', () => {
   });
 
   describe('findOneById', () => {
-    it('returns problem by id', async () => {
+    it('should return problem by id', async () => {
       mockPrismaService.problem.findUniqueOrThrow.mockResolvedValue(
         problemStub,
       );
@@ -119,7 +119,7 @@ describe('ProblemService', () => {
       });
     });
 
-    it('propagates prisma error when problem does not exist', async () => {
+    it('should propagate prisma error when problem does not exist', async () => {
       const prismaError = new PrismaClientKnownRequestError('Not Found', {
         code: 'P2025',
         clientVersion: '5.0.0',
@@ -134,7 +134,7 @@ describe('ProblemService', () => {
   });
 
   describe('create', () => {
-    it('creates problem', async () => {
+    it('should create problem', async () => {
       mockPrismaService.problem.create.mockResolvedValue(problemStub);
 
       const result = await service.create(createProblemDtoStub);
@@ -151,7 +151,7 @@ describe('ProblemService', () => {
   });
 
   describe('update', () => {
-    it('updates existing problem', async () => {
+    it('should update existing problem', async () => {
       mockPrismaService.problem.update.mockResolvedValue(updatedProblemStub);
 
       const result = await service.update('1', updateProblemDtoStub);
@@ -166,7 +166,7 @@ describe('ProblemService', () => {
         include: { testCases: true },
       });
     });
-    it('propagates prisma error when update fails', async () => {
+    it('should propagate prisma error when update fails', async () => {
       const prismaError = new PrismaClientKnownRequestError('Not Found', {
         code: 'P2025',
         clientVersion: '5.0.0',
@@ -181,7 +181,7 @@ describe('ProblemService', () => {
   });
 
   describe('remove', () => {
-    it('removes problem', async () => {
+    it('should remove problem', async () => {
       mockPrismaService.problem.delete.mockResolvedValue(problemStub);
 
       const result = await service.remove('1');
@@ -191,7 +191,7 @@ describe('ProblemService', () => {
         where: { id: '1' },
       });
     });
-    it('propagates prisma error when delete fails', async () => {
+    it('should propagate prisma error when delete fails', async () => {
       const prismaError = new PrismaClientKnownRequestError('Not Found', {
         code: 'P2025',
         clientVersion: '5.0.0',

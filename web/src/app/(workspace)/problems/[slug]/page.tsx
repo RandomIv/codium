@@ -32,7 +32,7 @@ export default function Page({
   }, [problem, slug, initializeCode]);
 
   useEffect(() => {
-    // Check if screen is mobile
+    
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -54,7 +54,7 @@ export default function Page({
     return notFound();
   }
 
-  // Mobile view with tabs
+  
   if (isMobile) {
     return (
       <div className="w-full h-full bg-background">
@@ -89,7 +89,7 @@ export default function Page({
     );
   }
 
-  // Desktop view with resizable panels
+  
   return (
     <div className="w-full h-full bg-background p-4">
       <ResizablePanelGroup

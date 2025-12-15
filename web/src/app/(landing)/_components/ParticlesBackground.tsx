@@ -46,7 +46,7 @@ export default function ParticlesBackground() {
     const drawParticles = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Draw particles
+      
       particles.forEach((particle) => {
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
@@ -54,7 +54,7 @@ export default function ParticlesBackground() {
         ctx.fill();
       });
 
-      // Draw connections
+      
       particles.forEach((particle, i) => {
         particles.slice(i + 1).forEach((otherParticle) => {
           const dx = particle.x - otherParticle.x;
@@ -79,11 +79,11 @@ export default function ParticlesBackground() {
         particle.x += particle.vx;
         particle.y += particle.vy;
 
-        // Bounce off edges
+        
         if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
         if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
 
-        // Keep particles within bounds
+        
         particle.x = Math.max(0, Math.min(canvas.width, particle.x));
         particle.y = Math.max(0, Math.min(canvas.height, particle.y));
       });
