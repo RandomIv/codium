@@ -1,4 +1,4 @@
-name: CI & E2E
+name: CI & Full Testing Suite
 
 on:
   push:
@@ -12,7 +12,7 @@ env:
 
 jobs:
   api:
-    name: API Service (Unit & Integration)
+    name: API (Unit & E2E)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -27,7 +27,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U codium"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -45,16 +45,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: npm
           cache-dependency-path: api/package-lock.json
       - run: npm ci
-      - name: Setup DB
+      - name: Setup DB Schema
         env:
           DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
         run: |
           npx prisma generate
           npx prisma migrate deploy
-      - run: npm run build
       - name: Run Unit Tests
         env:
           DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
@@ -71,7 +70,7 @@ jobs:
         run: npm run test:e2e:ci
 
   judge-service:
-    name: Judge Service (Unit)
+    name: Judge (Unit & E2E)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -91,7 +90,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: npm
           cache-dependency-path: judge-service/package-lock.json
       - run: npm ci
       - name: Build Sandbox Docker Images
@@ -113,9 +112,15 @@ jobs:
           REDIS_HOST: localhost
           REDIS_PORT: 6379
         run: npm run test
+      - name: Run Judge E2E Tests
+        env:
+          API_URL: "http://localhost:5000/api"
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: npm run test:e2e:ci
 
   web-system-e2e:
-    name: Full System E2E (Web + API + Judge)
+    name: Web Build & System E2E
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -127,7 +132,7 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --health-cmd "pg_isready -U codium"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -145,7 +150,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: npm
           cache-dependency-path: "**/package-lock.json"
       - name: Build Judge Sandbox Images
         run: |
@@ -184,18 +189,21 @@ jobs:
           npm ci
           npm run build
           npm run start:prod > ../judge.log 2>&1 &
-      - name: Start Web Frontend
+      - name: Setup Web
+        working-directory: ./web
+        run: npm ci
+      - name: Lint Web
+        working-directory: ./web
+        run: npm run lint
+      - name: Build & Start Web
         working-directory: ./web
         env:
           NEXT_PUBLIC_API_URL: "http://localhost:5000/api"
         run: |
-          npm ci
           npm run build
           npm start > ../web.log 2>&1 &
       - name: Wait for services
-        run: |
-          echo "Waiting for services to start..."
-          sleep 15
+        run: sleep 15
       - name: Install Playwright Browsers
         working-directory: ./web
         run: npx playwright install --with-deps
