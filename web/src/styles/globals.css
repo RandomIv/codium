@@ -81,6 +81,22 @@
   }
   body {
     @apply bg-background text-foreground font-inter;
+    /* Prevent pull-to-refresh on mobile */
+    overscroll-behavior-y: contain;
+    /* Better touch scrolling */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Better tap targets for mobile */
+  button, a, input, textarea, select {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
+
+  /* Prevent zoom on input focus on mobile */
+  @media screen and (max-width: 768px) {
+    input, textarea, select {
+      font-size: 16px !important;
+    }
   }
 }
 @layer utilities {

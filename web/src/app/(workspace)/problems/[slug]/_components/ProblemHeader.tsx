@@ -60,33 +60,39 @@ export default function ProblemHeader() {
   const isBusy = isSubmitting || isPolling;
 
   return (
-    <div className="w-full flex items-center justify-center p-4 relative">
-      <nav className="absolute left-4">
+    <div className="w-full flex items-center justify-between md:justify-center p-2 md:p-4 relative border-b border-border bg-card/50">
+      <nav className="md:absolute md:left-4">
         <Link href="/problems">
-          <Home className="text-muted-foreground hover:text-foreground transition-colors" />
+          <Home className="text-muted-foreground hover:text-foreground transition-colors w-5 h-5 md:w-6 md:h-6" />
         </Link>
       </nav>
 
       <Button
         onClick={handleSubmit}
         disabled={isBusy || !problem}
-        className="w-1/12 min-w-[140px] h-full text-green-500 bg-muted font-extrabold text-2xl hover:cursor-pointer hover:bg-muted/80"
+        className="w-auto md:w-1/12 md:min-w-[140px] px-3 md:px-4 h-9 md:h-10 text-green-500 bg-muted font-bold md:font-extrabold text-base md:text-2xl hover:cursor-pointer hover:bg-muted/80"
         variant="default"
       >
         {isBusy ? (
           <>
-            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            {isPolling ? 'Testing...' : 'Sending...'}
+            <Loader2 className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5 animate-spin" />
+            <span className="hidden sm:inline">
+              {isPolling ? 'Testing...' : 'Sending...'}
+            </span>
+            <span className="sm:hidden">...</span>
           </>
         ) : (
           <>
-            Submit
-            <Upload className="ml-2 w-6 h-6" />
+            <span className="hidden sm:inline">Submit</span>
+            <span className="sm:hidden">Run</span>
+            <Upload className="ml-1 md:ml-2 w-4 h-4 md:w-6 md:h-6" />
           </>
         )}
       </Button>
 
-      <LanguagePicker />
+      <div className="md:absolute md:right-4">
+        <LanguagePicker />
+      </div>
     </div>
   );
 }

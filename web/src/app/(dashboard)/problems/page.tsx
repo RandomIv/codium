@@ -85,81 +85,81 @@ export default function ProblemsPage() {
     0;
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
+        <div className="space-y-4 md:space-y-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-extrabold text-foreground">
+              <h1 className="text-2xl md:text-4xl font-extrabold text-foreground">
                 All Problems
               </h1>
-              <p className="text-lg text-muted-foreground mt-2">
+              <p className="text-sm md:text-lg text-muted-foreground mt-1 md:mt-2">
                 Browse our collection of algorithmic challenges
               </p>
             </div>
             <Input
               type="search"
               placeholder="Search problems..."
-              className="w-80 bg-muted border-border text-foreground text-base h-12"
+              className="w-full md:w-80 bg-muted border-border text-foreground text-sm md:text-base h-10 md:h-12"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
 
-          <div className="grid grid-cols-4 gap-4">
-            <div className="bg-card border border-border rounded-lg p-5 shadow-lg">
-              <p className="text-sm text-muted-foreground font-bold mb-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div className="bg-card border border-border rounded-lg p-3 md:p-5 shadow-lg">
+              <p className="text-xs md:text-sm text-muted-foreground font-bold mb-1 md:mb-2">
                 Total
               </p>
-              <p className="text-3xl font-extrabold text-foreground">
+              <p className="text-xl md:text-3xl font-extrabold text-foreground">
                 {totalProblems}
               </p>
             </div>
-            <div className="bg-card border border-border rounded-lg p-5 shadow-lg">
-              <p className="text-sm text-muted-foreground font-bold mb-2">
+            <div className="bg-card border border-border rounded-lg p-3 md:p-5 shadow-lg">
+              <p className="text-xs md:text-sm text-muted-foreground font-bold mb-1 md:mb-2">
                 Easy
               </p>
-              <p className="text-3xl font-extrabold text-green-500">
+              <p className="text-xl md:text-3xl font-extrabold text-green-500">
                 {easyCount}
               </p>
             </div>
-            <div className="bg-card border border-border rounded-lg p-5 shadow-lg">
-              <p className="text-sm text-muted-foreground font-bold mb-2">
+            <div className="bg-card border border-border rounded-lg p-3 md:p-5 shadow-lg">
+              <p className="text-xs md:text-sm text-muted-foreground font-bold mb-1 md:mb-2">
                 Medium
               </p>
-              <p className="text-3xl font-extrabold text-yellow-500">
+              <p className="text-xl md:text-3xl font-extrabold text-yellow-500">
                 {mediumCount}
               </p>
             </div>
-            <div className="bg-card border border-border rounded-lg p-5 shadow-lg">
-              <p className="text-sm text-muted-foreground font-bold mb-2">
+            <div className="bg-card border border-border rounded-lg p-3 md:p-5 shadow-lg">
+              <p className="text-xs md:text-sm text-muted-foreground font-bold mb-1 md:mb-2">
                 Hard
               </p>
-              <p className="text-3xl font-extrabold text-red-500">
+              <p className="text-xl md:text-3xl font-extrabold text-red-500">
                 {hardCount}
               </p>
             </div>
           </div>
         </div>
 
-        <div className="bg-card border border-border rounded-lg overflow-hidden shadow-lg">
+        <div className="bg-card border border-border rounded-lg overflow-hidden shadow-lg overflow-x-auto">
           <Table>
             <TableHeader className="bg-muted">
               <TableRow className="border-b border-border hover:bg-muted">
-                <TableHead className="p-5 font-extrabold text-foreground text-base w-[50px]">
+                <TableHead className="p-3 md:p-5 font-extrabold text-foreground text-sm md:text-base w-10 md:w-12">
                   Status
                 </TableHead>
-                <TableHead className="p-5 font-extrabold text-foreground text-base">
+                <TableHead className="p-3 md:p-5 font-extrabold text-foreground text-sm md:text-base">
                   Problem Title
                 </TableHead>
-                <TableHead className="p-5 font-extrabold text-foreground text-base">
+                <TableHead className="p-3 md:p-5 font-extrabold text-foreground text-sm md:text-base">
                   Difficulty
                 </TableHead>
-                <TableHead className="p-5 font-extrabold text-foreground text-base">
+                <TableHead className="p-3 md:p-5 font-extrabold text-foreground text-sm md:text-base">
                   Action
                 </TableHead>
                 {isAdmin && (
-                  <TableHead className="p-5 font-extrabold text-foreground text-base w-[100px]">
+                  <TableHead className="p-3 md:p-5 font-extrabold text-foreground text-sm md:text-base w-20 md:w-24">
                     Edit
                   </TableHead>
                 )}
@@ -174,26 +174,26 @@ export default function ProblemsPage() {
                     key={problem.id}
                     className="border-b border-border cursor-pointer hover:bg-muted/50 transition-colors"
                   >
-                    <TableCell className="p-5">
+                    <TableCell className="p-3 md:p-5">
                       {isSolved ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                        <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-green-500" />
                       ) : (
-                        <Circle className="w-5 h-5 text-muted-foreground/30" />
+                        <Circle className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground/30" />
                       )}
                     </TableCell>
 
-                    <TableCell className="p-5">
+                    <TableCell className="p-3 md:p-5">
                       <Link
                         href={`/problems/${problem.slug}`}
-                        className="block text-foreground text-lg font-bold hover:text-primary transition-colors"
+                        className="block text-foreground text-sm md:text-lg font-bold hover:text-primary transition-colors"
                       >
                         {problem.title}
                       </Link>
                     </TableCell>
 
-                    <TableCell className="p-5">
+                    <TableCell className="p-3 md:p-5">
                       <span
-                        className={`font-extrabold text-base ${getDifficultyColor(
+                        className={`font-extrabold text-sm md:text-base ${getDifficultyColor(
                           problem.difficulty,
                         )}`}
                       >
@@ -201,10 +201,10 @@ export default function ProblemsPage() {
                       </span>
                     </TableCell>
 
-                    <TableCell className="p-5">
+                    <TableCell className="p-3 md:p-5">
                       <Link href={`/problems/${problem.slug}`}>
                         <span
-                          className={`inline-block px-4 py-2 rounded-full text-sm font-extrabold transition-colors ${
+                          className={`inline-block px-2 py-1 md:px-4 md:py-2 rounded-full text-xs md:text-sm font-extrabold transition-colors ${
                             isSolved
                               ? 'bg-green-500/10 text-green-600 cursor-default'
                               : 'bg-primary/10 text-primary hover:bg-primary/20'
@@ -216,7 +216,7 @@ export default function ProblemsPage() {
                     </TableCell>
 
                     {isAdmin && (
-                      <TableCell className="p-5">
+                      <TableCell className="p-3 md:p-5">
                         <Button
                           variant="outline"
                           size="sm"
@@ -224,10 +224,10 @@ export default function ProblemsPage() {
                             e.stopPropagation();
                             router.push(`/admin/problems/${problem.id}/edit`);
                           }}
-                          className="font-bold"
+                          className="font-bold text-xs md:text-sm"
                         >
-                          <Pencil className="w-4 h-4 mr-2" />
-                          Edit
+                          <Pencil className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                          <span className="hidden md:inline">Edit</span>
                         </Button>
                       </TableCell>
                     )}

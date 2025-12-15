@@ -15,7 +15,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CreateTestCaseDto } from '@/types/dto';
 import { Difficulty } from '@/types/enums';
-import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
@@ -100,35 +99,22 @@ export function ProblemForm({
   onCancel,
   onDelete,
 }: ProblemFormProps) {
-  const [validationState, setValidationState] = useState<
-    Record<string, { inputValid: boolean; outputValid: boolean }>
-  >({});
-
   const handleTestCaseChange = (
     id: string,
     field: 'input' | 'output',
     value: string,
   ) => {
     onUpdateTestCase(id, field, value);
-
-    const validation = validateJSON(value);
-    setValidationState((prev) => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        [`${field}Valid`]: validation.valid,
-      },
-    }));
   };
 
   return (
-    <div className="min-h-screen bg-background p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-background p-4 md:p-8">
+      <div className="max-w-7xl mx-auto space-y-6 md:space-y-8">
         <div className="space-y-2">
-          <h1 className="text-4xl font-extrabold text-foreground">
+          <h1 className="text-2xl md:text-4xl font-extrabold text-foreground">
             {mode === 'create' ? 'Create New Problem' : 'Edit Problem'}
           </h1>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-sm md:text-lg text-muted-foreground">
             {mode === 'create'
               ? 'Add a new algorithmic challenge to the platform'
               : 'Update the problem details and configuration'}
@@ -136,61 +122,64 @@ export function ProblemForm({
         </div>
 
         {error && (
-          <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded">
+          <div className="bg-destructive/10 border border-destructive text-destructive px-3 md:px-4 py-2 md:py-3 rounded text-sm md:text-base">
             {error}
           </div>
         )}
 
-        <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-2">
+        <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3 md:p-4">
+          <h3 className="font-bold text-blue-900 dark:text-blue-100 mb-2 text-sm md:text-base">
             📋 Test Case Format Requirements
           </h3>
-          <div className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+          <div className="text-xs md:text-sm text-blue-800 dark:text-blue-200 space-y-1">
             <p>
               <strong>Input & Output must be valid JSON:</strong>
             </p>
-            <ul className="list-disc ml-6 space-y-1">
+            <ul className="list-disc ml-4 md:ml-6 space-y-1">
               <li>
-                <strong>Array:</strong> <code>[[2,7,11,15], 9]</code> or{' '}
-                <code>[1, 2, 3]</code>
+                <strong>Array:</strong>{' '}
+                <code className="text-xs">[[2,7,11,15], 9]</code> or{' '}
+                <code className="text-xs">[1, 2, 3]</code>
               </li>
               <li>
-                <strong>String:</strong> <code>"hello"</code> (with quotes!)
+                <strong>String:</strong>{' '}
+                <code className="text-xs">"hello"</code> (with quotes!)
               </li>
               <li>
-                <strong>Number:</strong> <code>42</code>
+                <strong>Number:</strong> <code className="text-xs">42</code>
               </li>
               <li>
-                <strong>Boolean:</strong> <code>true</code> or{' '}
-                <code>false</code>
+                <strong>Boolean:</strong> <code className="text-xs">true</code>{' '}
+                or <code className="text-xs">false</code>
               </li>
               <li>
                 <strong>Object:</strong>{' '}
-                <code>
+                <code className="text-xs">
                   {'{'}\"key\": \"value\"{'}'}
                 </code>
               </li>
             </ul>
             <p className="mt-2 text-xs">
-              💡 The judge service uses <code>JSON.parse()</code> to process
-              test cases
+              💡 The judge service uses{' '}
+              <code className="text-xs">JSON.parse()</code> to process test
+              cases
             </p>
           </div>
         </div>
 
-        <form onSubmit={onSubmit} className="space-y-6">
+        <form onSubmit={onSubmit} className="space-y-4 md:space-y-6">
           <Card className="bg-card border border-border shadow-lg">
-            <CardHeader className="pb-6">
-              <CardTitle className="text-2xl font-extrabold text-foreground">
+            <CardHeader className="pb-4 md:pb-6">
+              <CardTitle className="text-xl md:text-2xl font-extrabold text-foreground">
                 Basic Information
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-3">
+            <CardContent className="space-y-4 md:space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+                <div className="lg:col-span-2 space-y-2 md:space-y-3">
                   <Label
                     htmlFor="title"
-                    className="text-base font-bold text-foreground"
+                    className="text-sm md:text-base font-bold text-foreground"
                   >
                     Problem Title *
                   </Label>
@@ -200,15 +189,15 @@ export function ProblemForm({
                     value={title}
                     onChange={(e) => onTitleChange(e.target.value)}
                     placeholder="e.g., Two Sum"
-                    className="bg-muted border-border text-foreground h-12 text-base"
+                    className="bg-muted border-border text-foreground h-10 md:h-12 text-sm md:text-base"
                     required
                   />
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="difficulty"
-                    className="text-base font-bold text-foreground"
+                    className="text-sm md:text-base font-bold text-foreground"
                   >
                     Difficulty Level *
                   </Label>
@@ -218,7 +207,7 @@ export function ProblemForm({
                       onDifficultyChange(value as Difficulty)
                     }
                   >
-                    <SelectTrigger className="w-full bg-muted border-border text-foreground h-12 text-base">
+                    <SelectTrigger className="w-full bg-muted border-border text-foreground h-10 md:h-12 text-sm md:text-base">
                       <SelectValue placeholder="Select difficulty" />
                     </SelectTrigger>
                     <SelectContent>
@@ -234,10 +223,10 @@ export function ProblemForm({
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-3">
                 <Label
                   htmlFor="slug"
-                  className="text-base font-bold text-foreground"
+                  className="text-sm md:text-base font-bold text-foreground"
                 >
                   Slug (auto-generated) *
                 </Label>
@@ -247,16 +236,16 @@ export function ProblemForm({
                   value={slug}
                   onChange={(e) => onSlugChange(e.target.value)}
                   placeholder="e.g., two-sum"
-                  className="bg-muted border-border text-foreground h-12 text-base font-mono"
+                  className="bg-muted border-border text-foreground h-10 md:h-12 text-sm md:text-base font-mono"
                   required
                 />
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="timeLimit"
-                    className="text-base font-bold text-foreground"
+                    className="text-sm md:text-base font-bold text-foreground"
                   >
                     Time Limit (ms)
                   </Label>
@@ -267,14 +256,14 @@ export function ProblemForm({
                     onChange={(e) => onTimeLimitChange(Number(e.target.value))}
                     placeholder="1000"
                     min="1"
-                    className="bg-muted border-border text-foreground h-12 text-base"
+                    className="bg-muted border-border text-foreground h-10 md:h-12 text-sm md:text-base"
                   />
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="memoryLimit"
-                    className="text-base font-bold text-foreground"
+                    className="text-sm md:text-base font-bold text-foreground"
                   >
                     Memory Limit (MB)
                   </Label>
@@ -287,22 +276,29 @@ export function ProblemForm({
                     }
                     placeholder="256"
                     min="1"
-                    className="bg-muted border-border text-foreground h-12 text-base"
+                    className="bg-muted border-border text-foreground h-10 md:h-12 text-sm md:text-base"
                   />
                 </div>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2 md:space-y-3">
                 <Label
                   htmlFor="description"
-                  className="text-base font-bold text-foreground"
+                  className="text-sm md:text-base font-bold text-foreground"
                 >
                   Problem Description (Markdown) *
                 </Label>
                 <Tabs defaultValue="write" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="write">Write</TabsTrigger>
-                    <TabsTrigger value="preview">Preview</TabsTrigger>
+                    <TabsTrigger value="write" className="text-sm md:text-base">
+                      Write
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="preview"
+                      className="text-sm md:text-base"
+                    >
+                      Preview
+                    </TabsTrigger>
                   </TabsList>
                   <TabsContent value="write" className="mt-2">
                     <textarea
@@ -311,14 +307,14 @@ export function ProblemForm({
                       value={description}
                       onChange={(e) => onDescriptionChange(e.target.value)}
                       placeholder="Describe the problem in detail. Supports Markdown formatting.&#10;&#10;**Example:**&#10;# Two Sum&#10;Given an array of integers `nums` and an integer `target`...&#10;&#10;## Constraints:&#10;* $2 \le nums.length \le 10^4$"
-                      className="w-full p-4 bg-muted border border-border rounded-md text-foreground text-base resize-none focus:outline-none focus:ring-2 focus:ring-ring font-mono"
+                      className="w-full p-3 md:p-4 bg-muted border border-border rounded-md text-foreground text-sm md:text-base resize-none focus:outline-none focus:ring-2 focus:ring-ring font-mono"
                       required
                     />
                   </TabsContent>
                   <TabsContent value="preview" className="mt-2">
-                    <div className="w-full min-h-72 p-4 bg-muted border border-border rounded-md overflow-auto scrollbar-content">
+                    <div className="w-full min-h-72 p-3 md:p-4 bg-muted border border-border rounded-md overflow-auto scrollbar-content">
                       {description ? (
-                        <div className="prose prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-code:bg-card prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-pre:bg-card prose-pre:border prose-pre:border-border prose-a:text-primary">
+                        <div className="prose prose-sm md:prose-base prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-code:bg-card prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-pre:bg-card prose-pre:border prose-pre:border-border prose-a:text-primary">
                           <ReactMarkdown
                             remarkPlugins={[remarkMath, remarkGfm]}
                             rehypePlugins={[rehypeKatex]}
@@ -327,7 +323,7 @@ export function ProblemForm({
                           </ReactMarkdown>
                         </div>
                       ) : (
-                        <p className="text-muted-foreground italic">
+                        <p className="text-sm md:text-base text-muted-foreground italic">
                           Preview will appear here...
                         </p>
                       )}
@@ -343,17 +339,23 @@ export function ProblemForm({
           </Card>
 
           <Card className="bg-card border border-border shadow-lg">
-            <CardHeader className="pb-6">
-              <div className="flex justify-between items-center">
-                <CardTitle className="text-2xl font-extrabold text-foreground">
+            <CardHeader className="pb-4 md:pb-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                <CardTitle className="text-xl md:text-2xl font-extrabold text-foreground">
                   Test Cases
                 </CardTitle>
-                <Button type="button" onClick={onAddTestCase} variant="outline">
+                <Button
+                  type="button"
+                  onClick={onAddTestCase}
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   Add Test Case
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4 md:space-y-6">
               {testCases.map((tc, index) => {
                 const inputValidation = validateJSON(tc.input);
                 const outputValidation = validateJSON(tc.output);
@@ -362,22 +364,22 @@ export function ProblemForm({
                 return (
                   <div
                     key={tc.id}
-                    className={`p-4 border rounded-lg space-y-4 ${
+                    className={`p-3 md:p-4 border rounded-lg space-y-3 md:space-y-4 ${
                       isValid
                         ? 'border-border'
                         : 'border-destructive bg-destructive/5'
                     }`}
                   >
-                    <div className="flex justify-between items-center">
-                      <h4 className="font-bold">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                      <h4 className="font-bold text-sm md:text-base">
                         Test Case {index + 1}
                         {tc.isPublic && (
-                          <span className="ml-2 text-sm text-muted-foreground">
+                          <span className="ml-2 text-xs md:text-sm text-muted-foreground">
                             (Public Example)
                           </span>
                         )}
                         {!isValid && (
-                          <span className="ml-2 text-sm text-destructive">
+                          <span className="ml-2 text-xs md:text-sm text-destructive">
                             ⚠️ Invalid JSON
                           </span>
                         )}
@@ -388,15 +390,16 @@ export function ProblemForm({
                           variant="destructive"
                           size="sm"
                           onClick={() => onRemoveTestCase(tc.id)}
+                          className="w-full sm:w-auto text-xs md:text-sm"
                         >
                           Remove
                         </Button>
                       )}
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
                       <div className="space-y-2">
-                        <Label className="text-sm font-bold">
+                        <Label className="text-xs md:text-sm font-bold">
                           Input (JSON) *
                         </Label>
                         <Input
@@ -405,7 +408,7 @@ export function ProblemForm({
                             handleTestCaseChange(tc.id, 'input', e.target.value)
                           }
                           placeholder="e.g., [[2,7,11,15], 9]"
-                          className={`bg-muted border-border text-foreground font-mono ${
+                          className={`bg-muted border-border text-foreground font-mono text-xs md:text-sm ${
                             !inputValidation.valid && tc.input.trim()
                               ? 'border-destructive focus:ring-destructive'
                               : ''
@@ -417,14 +420,15 @@ export function ProblemForm({
                             {inputValidation.error}
                           </p>
                         )}
-                        <p className="text-xs text-muted-foreground">
-                          Examples: <code>[1, 2, 3]</code>,{' '}
-                          <code>[[2,7], 9]</code>, <code>"text"</code>
+                        <p className="text-xs text-muted-foreground break-all">
+                          Examples: <code className="text-xs">[1, 2, 3]</code>,{' '}
+                          <code className="text-xs">[[2,7], 9]</code>,{' '}
+                          <code className="text-xs">"text"</code>
                         </p>
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-sm font-bold">
+                        <Label className="text-xs md:text-sm font-bold">
                           Output (JSON) *
                         </Label>
                         <Input
@@ -437,7 +441,7 @@ export function ProblemForm({
                             )
                           }
                           placeholder="e.g., [0,1]"
-                          className={`bg-muted border-border text-foreground font-mono ${
+                          className={`bg-muted border-border text-foreground font-mono text-xs md:text-sm ${
                             !outputValidation.valid && tc.output.trim()
                               ? 'border-destructive focus:ring-destructive'
                               : ''
@@ -449,9 +453,10 @@ export function ProblemForm({
                             {outputValidation.error}
                           </p>
                         )}
-                        <p className="text-xs text-muted-foreground">
-                          Examples: <code>[0,1]</code>, <code>true</code>,{' '}
-                          <code>"result"</code>
+                        <p className="text-xs text-muted-foreground break-all">
+                          Examples: <code className="text-xs">[0,1]</code>,{' '}
+                          <code className="text-xs">true</code>,{' '}
+                          <code className="text-xs">"result"</code>
                         </p>
                       </div>
                     </div>
@@ -466,7 +471,10 @@ export function ProblemForm({
                         }
                         className="w-4 h-4"
                       />
-                      <Label htmlFor={`public-${tc.id}`} className="text-sm">
+                      <Label
+                        htmlFor={`public-${tc.id}`}
+                        className="text-xs md:text-sm"
+                      >
                         Show as public example
                       </Label>
                     </div>
@@ -477,17 +485,17 @@ export function ProblemForm({
           </Card>
 
           <Card className="bg-card border border-border shadow-lg">
-            <CardHeader className="pb-6">
-              <CardTitle className="text-2xl font-extrabold text-foreground">
+            <CardHeader className="pb-4 md:pb-6">
+              <CardTitle className="text-xl md:text-2xl font-extrabold text-foreground">
                 Starter Code
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="space-y-3">
+            <CardContent className="space-y-4 md:space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="javascript-code"
-                    className="text-base font-bold text-foreground"
+                    className="text-sm md:text-base font-bold text-foreground"
                   >
                     JavaScript Template *
                   </Label>
@@ -497,15 +505,15 @@ export function ProblemForm({
                     value={jsCode}
                     onChange={(e) => onJsCodeChange(e.target.value)}
                     placeholder="/**&#10; * @param {number[]} nums&#10; * @param {number} target&#10; * @return {number[]}&#10; */&#10;function solution(nums, target) {&#10;  &#10;}"
-                    className="w-full p-4 bg-muted border border-border rounded-md text-foreground font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full p-3 md:p-4 bg-muted border border-border rounded-md text-foreground font-mono text-xs md:text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
                     required
                   />
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2 md:space-y-3">
                   <Label
                     htmlFor="python-code"
-                    className="text-base font-bold text-foreground"
+                    className="text-sm md:text-base font-bold text-foreground"
                   >
                     Python Template *
                   </Label>
@@ -515,7 +523,7 @@ export function ProblemForm({
                     value={pythonCode}
                     onChange={(e) => onPythonCodeChange(e.target.value)}
                     placeholder="from typing import List&#10;&#10;def solution(nums: List[int], target: int) -> List[int]:&#10;    # Write your code here&#10;    pass"
-                    className="w-full p-4 bg-muted border border-border rounded-md text-foreground font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                    className="w-full p-3 md:p-4 bg-muted border border-border rounded-md text-foreground font-mono text-xs md:text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
                     required
                   />
                 </div>
@@ -524,13 +532,13 @@ export function ProblemForm({
           </Card>
 
           <div
-            className={`flex gap-4 ${mode === 'edit' ? 'justify-between' : 'justify-end'}`}
+            className={`flex flex-col sm:flex-row gap-3 md:gap-4 ${mode === 'edit' ? 'sm:justify-between' : 'sm:justify-end'}`}
           >
             {mode === 'edit' && onDelete && (
               <Button
                 type="button"
                 variant="destructive"
-                className="font-bold px-8"
+                className="font-bold px-6 md:px-8 w-full sm:w-auto text-sm md:text-base"
                 size="lg"
                 onClick={onDelete}
                 disabled={isDeleting || isSubmitting}
@@ -538,11 +546,11 @@ export function ProblemForm({
                 {isDeleting ? 'Deleting...' : 'Delete Problem'}
               </Button>
             )}
-            <div className="flex gap-4">
+            <div className="flex flex-col-reverse sm:flex-row gap-3 md:gap-4">
               <Button
                 type="button"
                 variant="outline"
-                className="font-bold px-8"
+                className="font-bold px-6 md:px-8 w-full sm:w-auto text-sm md:text-base"
                 size="lg"
                 onClick={onCancel}
                 disabled={isSubmitting || isDeleting}
@@ -551,7 +559,7 @@ export function ProblemForm({
               </Button>
               <Button
                 type="submit"
-                className="font-bold px-8"
+                className="font-bold px-6 md:px-8 w-full sm:w-auto text-sm md:text-base"
                 size="lg"
                 disabled={isSubmitting || isDeleting}
               >

@@ -16,13 +16,13 @@ export default function LanguagePicker() {
   const { language, setLanguage } = useWorkspaceStore();
 
   return (
-    <div className="absolute right-4 flex items-center bg-muted">
+    <div className="flex items-center bg-muted">
       <Select
         value={language}
         onValueChange={(val) => setLanguage(val as Language)}
       >
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Select language..." />
+        <SelectTrigger className="w-[100px] sm:w-[140px] md:w-[180px] h-9 text-sm">
+          <SelectValue placeholder="Language" />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>

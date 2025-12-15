@@ -19,13 +19,25 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useState, useEffect } from 'react';
 
 export default function ProblemWorkspace() {
   const { codes, language, setCode } = useWorkspaceStore();
+  const [isMobile, setIsMobile] = useState(false);
 
   const params = useParams();
   const slug = params.slug as string;
   const { data: problem } = useProblem(slug);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const changeHandler = (value: string | undefined) => {
     if (value !== undefined) {
@@ -87,15 +99,31 @@ export default function ProblemWorkspace() {
                 <div className="text-zinc-500 p-4">Loading Editor...</div>
               }
               options={{
-                minimap: { enabled: false },
+                minimap: { enabled: !isMobile },
                 automaticLayout: true,
                 scrollBeyondLastLine: false,
-                fontSize: 15,
+                fontSize: isMobile ? 13 : 15,
                 fontFamily: 'var(--font-mono)',
-                padding: { top: 16, bottom: 16 },
+                padding: {
+                  top: isMobile ? 12 : 16,
+                  bottom: isMobile ? 12 : 16,
+                },
                 lineNumbers: 'on',
                 roundedSelection: false,
                 scrollBeyondLastColumn: 0,
+                wordWrap: isMobile ? 'on' : 'off',
+                // Mobile-specific improvements
+                folding: !isMobile,
+                glyphMargin: !isMobile,
+                lineDecorationsWidth: isMobile ? 5 : 10,
+                lineNumbersMinChars: isMobile ? 3 : 5,
+                // Better touch support
+                scrollbar: {
+                  vertical: 'auto',
+                  horizontal: 'auto',
+                  verticalScrollbarSize: isMobile ? 8 : 10,
+                  horizontalScrollbarSize: isMobile ? 8 : 10,
+                },
               }}
             />
           </div>
