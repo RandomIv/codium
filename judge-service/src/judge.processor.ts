@@ -38,6 +38,8 @@ interface TestRunResult {
   testLogs: TestLogEntry[];
 }
 
+const BYTES_TO_KB = 1024;
+
 @Processor('judge-queue')
 export class JudgeProcessor extends WorkerHost {
   private readonly logger = new Logger(JudgeProcessor.name);
@@ -54,38 +56,94 @@ export class JudgeProcessor extends WorkerHost {
     const submissionId = job.id as string;
 
     try {
-      await this.apiService.updateSubmission(submissionId, {
-        status: SubmissionStatus.IN_PROGRESS,
-      });
+      await this.updateSubmissionStatus(
+        submissionId,
+        SubmissionStatus.IN_PROGRESS,
+      );
 
       const problem = await this.apiService.getProblem(problemId);
-
       const result = await this.runTests(code, language, problem);
 
-      const updateData = {
-        status: SubmissionStatus.COMPLETED,
-        verdict: result.verdict,
-        time: Math.round(result.maxTime),
-        memory: Math.round(result.maxMemory / 1024),
-        testCasesPassed: result.passedCount,
-        testLogs: result.testLogs,
-      };
+      await this.submitFinalResult(submissionId, result);
 
-      await this.apiService.updateSubmission(submissionId, updateData);
       return { status: 'Done', verdict: result.verdict };
     } catch (error) {
       this.logger.error(`Judge failed for #${submissionId}: ${error.message}`);
-
-      await this.apiService
-        .updateSubmission(submissionId, {
-          status: SubmissionStatus.FAILED,
-        })
-        .catch((e) =>
-          this.logger.error(`Failed to report error: ${e.message}`),
-        );
-
+      await this.handleProcessingError(submissionId);
       throw error;
     }
+  }
+
+  private async updateSubmissionStatus(
+    submissionId: string,
+    status: SubmissionStatus,
+  ): Promise<void> {
+    await this.apiService.updateSubmission(submissionId, { status });
+  }
+
+  private async submitFinalResult(
+    submissionId: string,
+    result: TestRunResult,
+  ): Promise<void> {
+    const updateData = {
+      status: SubmissionStatus.COMPLETED,
+      verdict: result.verdict,
+      time: Math.round(result.maxTime),
+      memory: Math.round(result.maxMemory / BYTES_TO_KB),
+      testCasesPassed: result.passedCount,
+      testLogs: result.testLogs,
+    };
+
+    await this.apiService.updateSubmission(submissionId, updateData);
+  }
+
+  private async handleProcessingError(submissionId: string): Promise<void> {
+    try {
+      await this.apiService.updateSubmission(submissionId, {
+        status: SubmissionStatus.FAILED,
+      });
+    } catch (error) {
+      this.logger.error(`Failed to report error: ${error.message}`);
+    }
+  }
+
+  private determineTestVerdict(
+    result: ExecutionResult,
+    expectedOutput: string,
+  ): Verdict {
+    if (result.isTimeLimitExceeded) {
+      return Verdict.TIME_LIMIT_EXCEEDED;
+    }
+
+    if (result.exitCode !== 0) {
+      return Verdict.RUNTIME_ERROR;
+    }
+
+    const actualOutput = result.stdout.trim();
+    const normalizedExpected = expectedOutput.trim();
+
+    if (actualOutput !== normalizedExpected) {
+      return Verdict.WRONG_ANSWER;
+    }
+
+    return Verdict.ACCEPTED;
+  }
+
+  private createTestLog(
+    testCase: JudgeProblem['testCases'][0],
+    result: ExecutionResult,
+    verdict: Verdict,
+  ): TestLogEntry {
+    return {
+      testCaseId: testCase.id,
+      status: verdict,
+      input: testCase.input,
+      expectedOutput: testCase.output,
+      actualOutput: result.stdout,
+      stderr: result.stderr || undefined,
+      executionTime: Math.round(result.executionTime),
+      memory: Math.round(result.memory / BYTES_TO_KB),
+    };
   }
 
   private async runTests(
@@ -106,40 +164,16 @@ export class JudgeProcessor extends WorkerHost {
         problem.timeLimit,
       );
 
-      if (result.executionTime > maxTime) {
-        maxTime = result.executionTime;
-      }
+      maxTime = Math.max(maxTime, result.executionTime);
+      maxMemory = Math.max(maxMemory, result.memory);
 
-      if (result.memory > maxMemory) {
-        maxMemory = result.memory;
-      }
+      const testVerdict = this.determineTestVerdict(result, test.output);
 
-      const actualOutput = result.stdout.trim();
-      const expectedOutput = test.output.trim();
-
-      let testVerdict: Verdict;
-
-      if (result.isTimeLimitExceeded) {
-        testVerdict = Verdict.TIME_LIMIT_EXCEEDED;
-      } else if (result.exitCode !== 0) {
-        testVerdict = Verdict.RUNTIME_ERROR;
-      } else if (actualOutput !== expectedOutput) {
-        testVerdict = Verdict.WRONG_ANSWER;
-      } else {
-        testVerdict = Verdict.ACCEPTED;
+      if (testVerdict === Verdict.ACCEPTED) {
         passedCount++;
       }
 
-      testLogs.push({
-        testCaseId: test.id,
-        status: testVerdict,
-        input: test.input,
-        expectedOutput: test.output,
-        actualOutput: result.stdout,
-        stderr: result.stderr || undefined,
-        executionTime: Math.round(result.executionTime),
-        memory: Math.round(result.memory / 1024),
-      });
+      testLogs.push(this.createTestLog(test, result, testVerdict));
 
       if (testVerdict !== Verdict.ACCEPTED) {
         return {
