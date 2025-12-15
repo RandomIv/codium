@@ -34,12 +34,16 @@ export class SubmissionService {
   async update(id: string, data: UpdateSubmissionDto): Promise<Submission> {
     const { testLogs, ...otherData } = data;
 
+    const testLogsJson = testLogs
+      ? (JSON.parse(JSON.stringify(testLogs)) as Prisma.InputJsonValue)
+      : undefined;
+
     return this.prisma.submission.update({
       where: { id },
       data: {
         ...otherData,
-        ...(testLogs && {
-          testLogs: testLogs as unknown as Prisma.InputJsonValue,
+        ...(testLogsJson && {
+          testLogs: testLogsJson,
         }),
       },
     });
