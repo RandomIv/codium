@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const adminUser = {
-  email: 'john@gmail.com',
+  email: 'admin@codium.com',
   password: '12345678',
 };
 
@@ -18,6 +18,8 @@ test.describe('Admin Operations', () => {
     await page.getByLabel('Email').fill(adminUser.email);
     await page.getByLabel('Password').fill(adminUser.password);
     await page.getByRole('button', { name: 'Sign In' }).click();
+
+    await expect(page).not.toHaveURL(/\/login/);
     await expect(page).toHaveURL(/\/problems/);
   });
 

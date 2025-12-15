@@ -4,7 +4,7 @@ import { registerAndLogin } from './utils/auth';
 const problemSlug = 'two-sum';
 
 const correctCode = `
-function solution(nums, target) {
+function twoSum(nums, target) {
   const map = new Map();
   for (let i = 0; i < nums.length; i++) {
     const complement = target - nums[i];
