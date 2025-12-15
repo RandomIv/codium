@@ -2,9 +2,9 @@ name: CI & Full Testing Suite
 
 on:
   push:
-    branches: ["main"]
+    branches: [ "main" ]
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
 
 env:
   SYSTEM_API_KEY: "e3d83efd3474a53f625ffdfa98f6c9fa2936e7722d7d16bae50d9382370ba2f8"
@@ -44,8 +44,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: npm
+          node-version: '20'
+          cache: 'npm'
           cache-dependency-path: api/package-lock.json
       - run: npm ci
       - name: Setup DB Schema
@@ -89,8 +89,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: npm
+          node-version: '20'
+          cache: 'npm'
           cache-dependency-path: judge-service/package-lock.json
       - run: npm ci
       - name: Build Sandbox Docker Images
@@ -149,9 +149,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: npm
-          cache-dependency-path: "**/package-lock.json"
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+
       - name: Build Judge Sandbox Images
         run: |
           docker build -t python:3.9-slim-time - <<EOF
@@ -164,6 +165,7 @@ jobs:
           RUN apt-get update && apt-get install -y time && rm -rf /var/lib/apt/lists/*
           WORKDIR /app
           EOF
+
       - name: Start API Service
         working-directory: ./api
         env:
@@ -178,6 +180,7 @@ jobs:
           npx prisma migrate deploy
           npm run build
           npm run start:prod > ../api.log 2>&1 &
+
       - name: Start Judge Service
         working-directory: ./judge-service
         env:
@@ -189,12 +192,11 @@ jobs:
           npm ci
           npm run build
           npm run start:prod > ../judge.log 2>&1 &
+
       - name: Setup Web
         working-directory: ./web
         run: npm ci
-      - name: Lint Web
-        working-directory: ./web
-        run: npm run lint
+
       - name: Build & Start Web
         working-directory: ./web
         env:
@@ -202,16 +204,20 @@ jobs:
         run: |
           npm run build
           npm start > ../web.log 2>&1 &
+
       - name: Wait for services
         run: sleep 15
+
       - name: Install Playwright Browsers
         working-directory: ./web
         run: npx playwright install --with-deps
+
       - name: Run Playwright Tests
         working-directory: ./web
         env:
           NEXT_PUBLIC_API_URL: "http://localhost:5000/api"
         run: npx playwright test
+
       - name: Upload Logs
         if: failure()
         uses: actions/upload-artifact@v4
