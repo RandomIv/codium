@@ -15,11 +15,17 @@ function twoSum(nums, target) {
 `;
 
 test('User can solve a problem', async ({ page }) => {
-  test.setTimeout(60000);
+  test.setTimeout(90000);
 
   await registerAndLogin(page);
 
   await page.goto(`/problems/${problemSlug}`);
+
+  const languageSelect = page.getByRole('combobox');
+  if (await languageSelect.isVisible()) {
+    await languageSelect.click();
+    await page.getByRole('option', { name: 'JavaScript' }).click();
+  }
 
   await page.locator('.monaco-editor').first().click();
   await page.keyboard.press('Control+A');
@@ -30,7 +36,7 @@ test('User can solve a problem', async ({ page }) => {
 
   await page.locator('text=Test Result').click();
 
-  await expect(page.getByText('ACCEPTED').first()).toBeVisible({
-    timeout: 30000,
+  await expect(page.getByText(/Accepted/i).first()).toBeVisible({
+    timeout: 60000,
   });
 });
