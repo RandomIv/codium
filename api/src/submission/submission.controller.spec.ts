@@ -68,19 +68,24 @@ describe('SubmissionController', () => {
   });
 
   describe('create', () => {
+    const mockUser = { id: 'user-id', email: 'test@test.com' } as any;
+
     it('creates a submission', async () => {
       mockSubmissionService.create.mockResolvedValue(submissionStub);
 
-      const result = await controller.create(createSubmissionDtoStub);
+      const result = await controller.create(createSubmissionDtoStub, mockUser);
 
       expect(result).toEqual(submissionStub);
-      expect(service.create).toHaveBeenCalledWith(createSubmissionDtoStub);
+      expect(service.create).toHaveBeenCalledWith({
+        ...createSubmissionDtoStub,
+        userId: mockUser.id,
+      });
     });
 
     it('creates submission and adds job to queue', async () => {
       mockSubmissionService.create.mockResolvedValue(submissionStub);
 
-      const result = await controller.create(createSubmissionDtoStub);
+      const result = await controller.create(createSubmissionDtoStub, mockUser);
 
       expect(result).toEqual(submissionStub);
       expect(result.status).toBe('PENDING');
