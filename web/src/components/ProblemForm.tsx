@@ -316,7 +316,7 @@ export function ProblemForm({
                     />
                   </TabsContent>
                   <TabsContent value="preview" className="mt-2">
-                    <div className="w-full min-h-72 p-4 bg-muted border border-border rounded-md overflow-auto">
+                    <div className="w-full min-h-72 p-4 bg-muted border border-border rounded-md overflow-auto scrollbar-content">
                       {description ? (
                         <div className="prose prose-invert max-w-none prose-headings:text-foreground prose-p:text-foreground prose-li:text-foreground prose-strong:text-foreground prose-code:text-foreground prose-code:bg-card prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none prose-pre:bg-card prose-pre:border prose-pre:border-border prose-a:text-primary">
                           <ReactMarkdown

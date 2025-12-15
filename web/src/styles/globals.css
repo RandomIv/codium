@@ -83,3 +83,83 @@
     @apply bg-background text-foreground font-inter;
   }
 }
+@layer utilities {
+    /* Default Custom Scrollbar Styling */
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        @apply bg-border/60 rounded-full;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+        transition: all 0.2s ease;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        @apply bg-muted-foreground/60;
+        border: 2px solid transparent;
+        background-clip: padding-box;
+    }
+
+    ::-webkit-scrollbar-thumb:active {
+        @apply bg-muted-foreground/80;
+    }
+
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: oklch(1 0 0 / 10%) transparent;
+    }
+
+    * {
+        scroll-behavior: smooth;
+    }
+
+    /* Enhanced scrollbar for content areas */
+    .scrollbar-content::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    .scrollbar-content::-webkit-scrollbar-track {
+        @apply bg-muted/20 rounded-lg;
+        margin: 4px;
+    }
+
+    .scrollbar-content::-webkit-scrollbar-thumb {
+        @apply bg-muted-foreground/40 rounded-lg;
+        border: 1px solid transparent;
+        background-clip: padding-box;
+        transition: all 0.2s ease;
+    }
+
+    .scrollbar-content::-webkit-scrollbar-thumb:hover {
+        @apply bg-muted-foreground/60;
+    }
+
+    /* Minimal scrollbar for code areas */
+    .scrollbar-minimal::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .scrollbar-minimal::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .scrollbar-minimal::-webkit-scrollbar-thumb {
+        @apply bg-border/40 rounded-full;
+        transition: all 0.15s ease;
+    }
+
+    .scrollbar-minimal::-webkit-scrollbar-thumb:hover {
+        @apply bg-border/80;
+    }
+}
+

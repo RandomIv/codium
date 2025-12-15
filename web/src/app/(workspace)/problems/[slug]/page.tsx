@@ -41,10 +41,10 @@ export default function Page({
     return notFound();
   }
   return (
-    <div className="w-full h-full flex items-center justify-center bg-background flex-col pb-10">
+    <div className="w-full h-full bg-background p-4">
       <ResizablePanelGroup
         direction="horizontal"
-        className="border border-border rounded-lg overflow-hidden bg-card"
+        className="h-full border border-border rounded-lg overflow-hidden bg-card"
       >
         <ResizablePanel>
           <ProblemDescription />
