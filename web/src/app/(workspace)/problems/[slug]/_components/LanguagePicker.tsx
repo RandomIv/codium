@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useWorkspaceStore } from '@/store/workspaceStore';
-import { Language } from '@/types/enums'; // Переконайся, що шлях вірний
+import { Language } from '@/types/enums'; 
 
 export default function LanguagePicker() {
   const { language, setLanguage } = useWorkspaceStore();

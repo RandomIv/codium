@@ -112,12 +112,12 @@ export default function ProblemWorkspace() {
                 roundedSelection: false,
                 scrollBeyondLastColumn: 0,
                 wordWrap: isMobile ? 'on' : 'off',
-                // Mobile-specific improvements
+                
                 folding: !isMobile,
                 glyphMargin: !isMobile,
                 lineDecorationsWidth: isMobile ? 5 : 10,
                 lineNumbersMinChars: isMobile ? 3 : 5,
-                // Better touch support
+                
                 scrollbar: {
                   vertical: 'auto',
                   horizontal: 'auto',

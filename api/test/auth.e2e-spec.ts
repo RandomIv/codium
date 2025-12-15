@@ -1,5 +1,5 @@
 import * as dotenv from 'dotenv';
-// Вантажимо змінні з локального тестового файлу перед усім іншим
+
 dotenv.config({ path: '.env.test.local' });
 
 import { Test, TestingModule } from '@nestjs/testing';
@@ -168,7 +168,7 @@ describe('Auth API (e2e)', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post('/api/auth/register') // Додано /api
+        .post('/api/auth/register') 
         .send(registerDto)
         .expect(201);
 
@@ -181,7 +181,7 @@ describe('Auth API (e2e)', () => {
 
     it('should login with valid credentials', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/auth/login') // Додано /api
+        .post('/api/auth/login') 
         .send({
           email: registeredUser.email,
           password: registeredUser.password,
@@ -238,14 +238,14 @@ describe('Auth API (e2e)', () => {
       };
 
       const registerResponse = await request(app.getHttpServer())
-        .post('/api/auth/register') // Додано /api
+        .post('/api/auth/register') 
         .send(credentials)
         .expect(201);
 
       const userId = registerResponse.body.userId;
 
       const loginResponse = await request(app.getHttpServer())
-        .post('/api/auth/login') // Додано /api
+        .post('/api/auth/login') 
         .send({ email: credentials.email, password: credentials.password })
         .expect(201);
 
@@ -259,7 +259,7 @@ describe('Auth API (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/api/auth/login') // Додано /api
+        .post('/api/auth/login') 
         .send(credentials)
         .expect(401);
     });

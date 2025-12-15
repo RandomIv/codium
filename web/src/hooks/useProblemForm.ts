@@ -152,7 +152,7 @@ export function useProblemForm(initialData?: {
   };
 
   return {
-    // State
+    
     title,
     slug,
     description,
@@ -164,7 +164,7 @@ export function useProblemForm(initialData?: {
     testCases,
     isSubmitting,
     error,
-    // Setters
+    
     setTitle,
     setSlug,
     setDescription,
@@ -177,7 +177,7 @@ export function useProblemForm(initialData?: {
     setIsSubmitting,
     setError,
     setData,
-    // Handlers
+    
     handleTitleChange,
     addTestCase,
     removeTestCase,

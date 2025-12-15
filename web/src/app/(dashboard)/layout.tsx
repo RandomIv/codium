@@ -38,7 +38,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-background">
-      {/* Desktop Sidebar */}
+      {}
       <aside className="hidden md:block w-64 bg-card border-r border-border p-6">
         <Sidebar />
       </aside>
