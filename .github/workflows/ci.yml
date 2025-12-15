@@ -1,4 +1,4 @@
-name: CI & E2E
+name: Production Quality CI
 
 on:
   push:
@@ -8,11 +8,12 @@ on:
 
 env:
   SYSTEM_API_KEY: "e3d83efd3474a53f625ffdfa98f6c9fa2936e7722d7d16bae50d9382370ba2f8"
-  JWT_SECRET: "your_jwt_secret_key"
+  JWT_SECRET: "super_secret_test_key_123"
+  FORCE_COLOR: 1
 
 jobs:
-  api:
-    name: API Service (Unit)
+  test-api:
+    name: API Checks
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -47,24 +48,29 @@ jobs:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: api/package-lock.json
+
       - run: npm ci
+
       - name: Setup DB
         env:
           DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
         run: |
           npx prisma generate
           npx prisma migrate deploy
-      - run: npm run build
+
       - name: Run Unit Tests
+        run: npm run test
+
+      - name: Run API E2E Tests
         env:
           DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           JWT_EXPIRATION: "1h"
-        run: npm run test
+        run: npm run test:e2e
 
-  judge-service:
-    name: Judge Service (Unit)
+  test-judge:
+    name: Judge Checks
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -86,8 +92,11 @@ jobs:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: judge-service/package-lock.json
+
       - run: npm ci
-      - run: |
+
+      - name: Build Sandbox Images
+        run: |
           docker build -t python:3.9-slim-time - <<EOF
           FROM python:3.9-slim
           RUN apt-get update && apt-get install -y time && rm -rf /var/lib/apt/lists/*
@@ -98,29 +107,83 @@ jobs:
           RUN apt-get update && apt-get install -y time && rm -rf /var/lib/apt/lists/*
           WORKDIR /app
           EOF
-      - run: npm run build
-      - name: Run Unit Tests
-        env:
-          API_URL: "http://localhost:5000/api"
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
+
+      - name: Run Unit & Integration Tests
         run: npm run test
 
-  web:
-    name: Web Frontend (Build)
+  e2e-full-system:
+    name: E2E (Playwright Full System)
+    needs: [test-api, test-judge]
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./web
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: web/package-lock.json
-      - run: npm ci
-      - name: Build
+
+      - name: Start Infrastructure
+        run: |
+          docker run -d -p 5432:5432 -e POSTGRES_USER=codium -e POSTGRES_PASSWORD=codium_password -e POSTGRES_DB=codium_test postgres:15-alpine
+          docker run -d -p 6379:6379 redis:7-alpine
+          sleep 5
+
+      - name: Build Sandbox Images
+        run: |
+          docker build -t python:3.9-slim-time - <<EOF
+          FROM python:3.9-slim
+          RUN apt-get update && apt-get install -y time
+          EOF
+          docker build -t node:18-slim-time - <<EOF
+          FROM node:18-slim
+          RUN apt-get update && apt-get install -y time
+          EOF
+
+      - name: Setup API
+        working-directory: ./api
+        env:
+          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_EXPIRATION: "1h"
+          PORT: 5000
+        run: |
+          npm ci
+          npx prisma generate
+          npx prisma migrate deploy
+          npm run build
+          nohup node dist/main.js > api.log 2>&1 &
+
+      - name: Setup Judge Service
+        working-directory: ./judge-service
+        env:
+          API_URL: "http://localhost:5000/api"
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+        run: |
+          npm ci
+          npm run build
+          nohup node dist/main.js > judge.log 2>&1 &
+
+      - name: Setup Web
+        working-directory: ./web
         env:
           NEXT_PUBLIC_API_URL: "http://localhost:5000/api"
-        run: npm run build
+        run: |
+          npm ci
+          npm run build
+          nohup npm start > web.log 2>&1 &
+
+      - name: Wait for services
+        run: |
+          npx wait-on tcp:5000 tcp:3000 --timeout 60000
+
+      - name: Run Playwright Tests
+        working-directory: ./web
+        run: |
+          npx playwright install --with-deps
+          npx playwright test
+        env:
+          BASE_URL: "http://localhost:3000"
