@@ -87,8 +87,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: judge-service/package-lock.json
       - run: npm ci
-      - name: Build Docker Images required for Judge
-        run: |
+      - run: |
           docker build -t python:3.9-slim-time - <<EOF
           FROM python:3.9-slim
           RUN apt-get update && apt-get install -y time && rm -rf /var/lib/apt/lists/*
@@ -153,7 +152,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -182,14 +180,13 @@ jobs:
           REDIS_PORT: 6379
           JWT_EXPIRATION: "1h"
           PORT: 5000
-        run: npm run start:dev &
+        run: npm run start:dev > api.log 2>&1 &
 
       - name: Install Judge Dependencies
         working-directory: ./judge-service
         run: npm ci
 
-      - name: Build Docker Images for Judge
-        run: |
+      - run: |
           docker build -t python:3.9-slim-time - <<EOF
           FROM python:3.9-slim
           RUN apt-get update && apt-get install -y time && rm -rf /var/lib/apt/lists/*
@@ -208,7 +205,7 @@ jobs:
           SYSTEM_API_KEY: "e3d83efd3474a53f625ffdfa98f6c9fa2936e7722d7d16bae50d9382370ba2f8"
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-        run: npm run start:dev &
+        run: npm run start:dev > judge.log 2>&1 &
 
       - name: Install Web Dependencies
         working-directory: ./web
@@ -223,10 +220,10 @@ jobs:
         env:
           NEXT_PUBLIC_API_URL: "http://localhost:5000/api"
           PORT: 3000
-        run: npm run dev &
+        run: npm run dev > web.log 2>&1 &
 
-      - name: Wait
-        run: sleep 15
+      - name: Wait for API and Web
+        run: npx wait-on tcp:5000 tcp:3000 -t 120000
 
       - name: Run Playwright tests
         working-directory: ./web
