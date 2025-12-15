@@ -38,8 +38,9 @@ describe('SubmissionController (E2E)', () => {
     await prisma.problem.deleteMany();
     await prisma.user.deleteMany();
 
+    const { testCases, ...problemData } = createProblemDtoStub;
     const problem = await prisma.problem.create({
-      data: createProblemDtoStub,
+      data: problemData,
     });
     testProblemId = problem.id;
 
