@@ -25,6 +25,9 @@ describe('ProblemService', () => {
       update: jest.fn(),
       delete: jest.fn(),
     },
+    testCase: {
+      deleteMany: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -138,7 +141,11 @@ describe('ProblemService', () => {
 
       expect(result).toEqual(problemStub);
       expect(prisma.problem.create).toHaveBeenCalledWith({
-        data: createProblemDtoStub,
+        data: {
+          ...createProblemDtoStub,
+          testCases: undefined,
+        },
+        include: { testCases: true },
       });
     });
   });
@@ -152,7 +159,11 @@ describe('ProblemService', () => {
       expect(result).toEqual(updatedProblemStub);
       expect(prisma.problem.update).toHaveBeenCalledWith({
         where: { id: '1' },
-        data: updateProblemDtoStub,
+        data: {
+          ...updateProblemDtoStub,
+          testCases: undefined,
+        },
+        include: { testCases: true },
       });
     });
     it('propagates prisma error when update fails', async () => {

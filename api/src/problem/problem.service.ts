@@ -35,13 +35,49 @@ export class ProblemService {
   }
 
   async create(data: CreateProblemDto): Promise<Problem> {
-    return this.prisma.problem.create({ data });
+    const { testCases, ...problemData } = data;
+
+    return this.prisma.problem.create({
+      data: {
+        ...problemData,
+        testCases: testCases
+          ? {
+              create: testCases.map((tc) => ({
+                input: tc.input,
+                output: tc.output,
+                isPublic: tc.isPublic ?? false,
+              })),
+            }
+          : undefined,
+      },
+      include: { testCases: true },
+    });
   }
 
   async update(id: string, data: UpdateProblemDto): Promise<Problem> {
+    const { testCases, ...problemData } = data;
+
+    if (testCases) {
+      await this.prisma.testCase.deleteMany({
+        where: { problemId: id },
+      });
+    }
+
     return this.prisma.problem.update({
       where: { id },
-      data,
+      data: {
+        ...problemData,
+        testCases: testCases
+          ? {
+              create: testCases.map((tc) => ({
+                input: tc.input,
+                output: tc.output,
+                isPublic: tc.isPublic ?? false,
+              })),
+            }
+          : undefined,
+      },
+      include: { testCases: true },
     });
   }
 

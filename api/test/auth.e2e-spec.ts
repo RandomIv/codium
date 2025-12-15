@@ -264,4 +264,91 @@ describe('Auth API (e2e)', () => {
         .expect(401);
     });
   });
+
+  describe('GET /api/auth/me', () => {
+    let accessToken: string;
+    let userId: string;
+
+    beforeEach(async () => {
+      const registerDto = {
+        email: 'me-test@example.com',
+        password: 'password123',
+        name: 'Me Test User',
+      };
+
+      const registerResponse = await request(app.getHttpServer())
+        .post('/api/auth/register')
+        .send(registerDto)
+        .expect(201);
+
+      userId = registerResponse.body.userId;
+
+      const loginResponse = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: registerDto.email, password: registerDto.password })
+        .expect(201);
+
+      accessToken = loginResponse.body.accessToken;
+    });
+
+    it('should get current user profile with valid token', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('id');
+      expect(response.body).toHaveProperty('email');
+      expect(response.body).toHaveProperty('role');
+      expect(response.body).toHaveProperty('submissions');
+      expect(response.body.id).toBe(userId);
+      expect(response.body.email).toBe('me-test@example.com');
+    });
+
+    it('should not expose password in profile', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body).not.toHaveProperty('password');
+    });
+
+    it('should return 401 without token', async () => {
+      await request(app.getHttpServer()).get('/api/auth/me').expect(401);
+    });
+
+    it('should return 401 with invalid token', async () => {
+      await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', 'Bearer invalid-token')
+        .expect(401);
+    });
+
+    it('should return 401 with malformed authorization header', async () => {
+      await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', 'InvalidFormat token')
+        .expect(401);
+    });
+
+    it('should include user submissions in profile', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('submissions');
+      expect(Array.isArray(response.body.submissions)).toBe(true);
+    });
+
+    it('should return user with correct role', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/auth/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body.role).toBe('USER');
+    });
+  });
 });

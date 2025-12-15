@@ -12,6 +12,7 @@ import { ProblemService } from './problem.service';
 import { CreateProblemDto } from './dto/create-problem.dto';
 import { UpdateProblemDto } from './dto/update-problem.dto';
 import { SystemGuard } from '../common/guards/system.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('problems')
 export class ProblemController {
@@ -21,6 +22,13 @@ export class ProblemController {
   findAll() {
     return this.problemService.findAll();
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('admin/:id')
+  findOneByIdForAdmin(@Param('id') id: string) {
+    return this.problemService.findOneById(id);
+  }
+
   @UseGuards(SystemGuard)
   @Get('system/:id')
   findOneById(@Param('id') id: string) {

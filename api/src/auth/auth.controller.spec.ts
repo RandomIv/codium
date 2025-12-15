@@ -2,20 +2,27 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
+import { UserService } from '../user/user.service';
 import {
   registerUserDtoStub,
   registerUserResponseStub,
   loginUserResponseStub,
   userStub,
+  userProfileStub,
 } from './auth.stubs';
 
 describe('AuthController', () => {
   let authController: AuthController;
   let authService: AuthService;
+  let userService: UserService;
 
   const mockAuthService = {
     register: jest.fn(),
     login: jest.fn(),
+  };
+
+  const mockUserService = {
+    findUserProfile: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -28,11 +35,16 @@ describe('AuthController', () => {
           provide: AuthService,
           useValue: mockAuthService,
         },
+        {
+          provide: UserService,
+          useValue: mockUserService,
+        },
       ],
     }).compile();
 
     authController = module.get<AuthController>(AuthController);
     authService = module.get<AuthService>(AuthService);
+    userService = module.get<UserService>(UserService);
   });
 
   it('should be defined', () => {
@@ -124,6 +136,57 @@ describe('AuthController', () => {
         'Login failed',
       );
       expect(authService.login).toHaveBeenCalledWith(userStub);
+    });
+  });
+
+  describe('getMe', () => {
+    it('should get current user profile successfully', async () => {
+      mockUserService.findUserProfile.mockResolvedValue(userProfileStub);
+
+      const result = await authController.getMe(userStub);
+
+      expect(userService.findUserProfile).toHaveBeenCalledWith(userStub.id);
+      expect(userService.findUserProfile).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(userProfileStub);
+    });
+
+    it('should return user profile with submissions', async () => {
+      mockUserService.findUserProfile.mockResolvedValue(userProfileStub);
+
+      const result = await authController.getMe(userStub);
+
+      expect(result).toHaveProperty('id');
+      expect(result).toHaveProperty('email');
+      expect(result).toHaveProperty('submissions');
+      expect(result.id).toBe(userStub.id);
+    });
+
+    it('should pass user id to user service', async () => {
+      mockUserService.findUserProfile.mockResolvedValue(userProfileStub);
+
+      await authController.getMe(userStub);
+
+      const findUserProfileCall = mockUserService.findUserProfile.mock.calls[0];
+      expect(findUserProfileCall[0]).toBe(userStub.id);
+    });
+
+    it('should handle user service errors', async () => {
+      mockUserService.findUserProfile.mockRejectedValue(
+        new Error('User not found'),
+      );
+
+      await expect(authController.getMe(userStub)).rejects.toThrow(
+        'User not found',
+      );
+      expect(userService.findUserProfile).toHaveBeenCalledWith(userStub.id);
+    });
+
+    it('should not expose password in profile', async () => {
+      mockUserService.findUserProfile.mockResolvedValue(userProfileStub);
+
+      const result = await authController.getMe(userStub);
+
+      expect(result).not.toHaveProperty('password');
     });
   });
 });

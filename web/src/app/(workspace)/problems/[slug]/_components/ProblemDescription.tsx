@@ -39,7 +39,7 @@ export default function ProblemDescription() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <WindowHeader text={problem.title} />{' '}
-      <div className="prose prose-invert prose-sm md:prose-base max-w-none p-4 overflow-y-auto flex-1">
+      <div className="prose prose-invert prose-sm md:prose-base max-w-none p-4 overflow-y-auto flex-1 scrollbar-content">
         <ReactMarkdown
           remarkPlugins={[remarkGfm, remarkMath]}
           rehypePlugins={[rehypeKatex]}

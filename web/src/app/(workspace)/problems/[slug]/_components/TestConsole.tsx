@@ -91,7 +91,7 @@ export function TestConsole() {
         {/* --- CASES TAB --- */}
         <TabsContent
           value="cases"
-          className="flex-1 overflow-y-auto rounded-2xl bg-card p-4 shadow-inner m-0 ring-1 ring-inset ring-border/20"
+          className="flex-1 overflow-y-auto rounded-2xl bg-card p-4 shadow-inner m-0 ring-1 ring-inset ring-border/20 scrollbar-content"
         >
           <div className="flex flex-col gap-4">
             <div className="space-y-2">
@@ -112,7 +112,7 @@ export function TestConsole() {
         {/* --- RESULT TAB --- */}
         <TabsContent
           value="result"
-          className="flex-1 overflow-y-auto rounded-2xl bg-card p-4 shadow-inner m-0 ring-1 ring-inset ring-border/20"
+          className="flex-1 overflow-y-auto rounded-2xl bg-card p-4 shadow-inner m-0 ring-1 ring-inset ring-border/20 scrollbar-content"
         >
           {!testLogs ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-muted-foreground opacity-70">

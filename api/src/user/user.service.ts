@@ -30,6 +30,29 @@ export class UserService {
       ...(includePassword ? {} : { omit: { password: true } }),
     });
   }
+  async findUserProfile(id: string) {
+    return this.prisma.user.findUniqueOrThrow({
+      where: { id },
+      omit: {
+        password: true,
+      },
+      include: {
+        submissions: {
+          orderBy: { createdAt: 'desc' },
+          include: {
+            problem: {
+              select: {
+                id: true,
+                title: true,
+                slug: true,
+                difficulty: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
   async findMany(params: FindManyUserDto): Promise<UserWithoutPassword[]> {
     const { where, orderBy, take, skip } = params;
 

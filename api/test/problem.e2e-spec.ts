@@ -12,6 +12,7 @@ import { PrismaExceptionFilter } from '../src/common/filters/prisma-exception.fi
 describe('ProblemController (E2E)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let authToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -26,6 +27,21 @@ describe('ProblemController (E2E)', () => {
     app.setGlobalPrefix('api');
     await app.init();
     prisma = app.get<PrismaService>(PrismaService);
+
+    await request(app.getHttpServer()).post('/api/auth/register').send({
+      email: 'test@example.com',
+      password: 'password123',
+      name: 'Test User',
+    });
+
+    const loginResponse = await request(app.getHttpServer())
+      .post('/api/auth/login')
+      .send({
+        email: 'test@example.com',
+        password: 'password123',
+      });
+
+    authToken = loginResponse.body.accessToken;
   });
 
   afterAll(async () => {
@@ -51,7 +67,12 @@ describe('ProblemController (E2E)', () => {
 
   describe('GET /api/problems', () => {
     it('returns a list of problems [200]', async () => {
-      await prisma.problem.create({ data: createProblemDtoStub });
+      await prisma.problem.create({
+        data: {
+          ...createProblemDtoStub,
+          testCases: undefined,
+        },
+      });
 
       const res = await request(app.getHttpServer())
         .get('/api/problems')
@@ -65,7 +86,10 @@ describe('ProblemController (E2E)', () => {
   describe('GET /api/problems/:slug', () => {
     it('returns a problem by slug [200]', async () => {
       const createdProblem = await prisma.problem.create({
-        data: createProblemDtoStub,
+        data: {
+          ...createProblemDtoStub,
+          testCases: undefined,
+        },
       });
 
       return request(app.getHttpServer())
@@ -86,7 +110,10 @@ describe('ProblemController (E2E)', () => {
   describe('GET /api/problems/system/:id', () => {
     it('returns a problem by id [200]', async () => {
       const createdProblem = await prisma.problem.create({
-        data: createProblemDtoStub,
+        data: {
+          ...createProblemDtoStub,
+          testCases: undefined,
+        },
       });
       return request(app.getHttpServer())
         .get(`/api/problems/system/${createdProblem.id}`)
@@ -99,7 +126,10 @@ describe('ProblemController (E2E)', () => {
     });
     it('returns 401 for unauthorized requests', async () => {
       const createdProblem = await prisma.problem.create({
-        data: createProblemDtoStub,
+        data: {
+          ...createProblemDtoStub,
+          testCases: undefined,
+        },
       });
 
       return request(app.getHttpServer())
@@ -113,10 +143,78 @@ describe('ProblemController (E2E)', () => {
         .expect(404);
     });
   });
+
+  describe('GET /api/problems/admin/:id', () => {
+    it('returns a problem by id with JWT auth [200]', async () => {
+      const createdProblem = await prisma.problem.create({
+        data: {
+          ...createProblemDtoStub,
+          testCases: {
+            create: [
+              {
+                input: '[[2,7,11,15], 9]',
+                output: '[0,1]',
+                isPublic: true,
+              },
+              {
+                input: '[[3,2,4], 6]',
+                output: '[1,2]',
+                isPublic: false,
+              },
+            ],
+          },
+        },
+      });
+
+      return request(app.getHttpServer())
+        .get(`/api/problems/admin/${createdProblem.id}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200)
+        .expect(({ body }) => {
+          expect(body.id).toBe(createdProblem.id);
+          expect(body.slug).toBe(createdProblem.slug);
+          expect(body.testCases).toBeDefined();
+          expect(body.testCases).toHaveLength(2);
+        });
+    });
+
+    it('returns 401 for unauthorized requests', async () => {
+      const createdProblem = await prisma.problem.create({
+        data: {
+          ...createProblemDtoStub,
+          testCases: undefined,
+        },
+      });
+
+      return request(app.getHttpServer())
+        .get(`/api/problems/admin/${createdProblem.id}`)
+        .expect(401);
+    });
+
+    it('returns 404 for non-existent id', () => {
+      const fakeId = '123e4567-e89b-12d3-a456-426614174000';
+
+      return request(app.getHttpServer())
+        .get(`/api/problems/admin/${fakeId}`)
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(404);
+    });
+  });
   describe('PATCH /api/problems/:id', () => {
     it('updates a problem [200]', async () => {
       const createdProblem = await prisma.problem.create({
-        data: createProblemDtoStub,
+        data: {
+          ...createProblemDtoStub,
+          testCases: {
+            create: [
+              {
+                input: '[[2,7,11,15], 9]',
+                output: '[0,1]',
+                isPublic: true,
+              },
+            ],
+          },
+        },
       });
 
       return request(app.getHttpServer())
@@ -141,7 +239,10 @@ describe('ProblemController (E2E)', () => {
   describe('DELETE /api/problems/:id', () => {
     it('deletes a problem [200]', async () => {
       const createdProblem = await prisma.problem.create({
-        data: createProblemDtoStub,
+        data: {
+          ...createProblemDtoStub,
+          testCases: undefined,
+        },
       });
 
       await request(app.getHttpServer())

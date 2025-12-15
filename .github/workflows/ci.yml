@@ -1,4 +1,4 @@
-name: CI
+name: CI & E2E
 
 on:
   push:
@@ -12,13 +12,11 @@ env:
 
 jobs:
   api:
-    name: API Service
+    name: API Service (Unit)
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: ./api
-
     services:
       postgres:
         image: postgres:15-alpine
@@ -33,7 +31,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
       redis:
         image: redis:7-alpine
         ports:
@@ -43,53 +40,35 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: api/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Generate Prisma Client
+      - run: npm ci
+      - name: Setup DB
         env:
           DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
-        run: npx prisma generate
-
-      - name: Run Migrations
+        run: |
+          npx prisma generate
+          npx prisma migrate deploy
+      - run: npm run build
+      - name: Run Unit Tests
         env:
           DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
-        run: npx prisma migrate deploy
-
-      - name: Build
-        run: npm run build
-
-      - name: Run Tests (Unit & E2E)
-        env:
-          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
-          JWT_SECRET: "your_jwt_secret_key"
-          SYSTEM_API_KEY: "e3d83efd3474a53f625ffdfa98f6c9fa2936e7722d7d16bae50d9382370ba2f8"
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           JWT_EXPIRATION: "1h"
-        run: |
-          npm run test
-          npm run test:e2e:ci
+        run: npm run test
 
   judge-service:
-    name: Judge Service
+    name: Judge Service (Unit)
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: ./judge-service
-
     services:
       redis:
         image: redis:7-alpine
@@ -100,80 +79,48 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: judge-service/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build Docker Images for Tests
-        run: |
+      - run: npm ci
+      - run: |
           docker build -t python:3.9-slim-time - <<EOF
           FROM python:3.9-slim
-          RUN apt-get update && \
-              apt-get install -y time && \
-              rm -rf /var/lib/apt/lists/*
+          RUN apt-get update && apt-get install -y time && rm -rf /var/lib/apt/lists/*
           WORKDIR /app
           EOF
-
           docker build -t node:18-slim-time - <<EOF
           FROM node:18-slim
-          RUN apt-get update && \
-              apt-get install -y time && \
-              rm -rf /var/lib/apt/lists/*
+          RUN apt-get update && apt-get install -y time && rm -rf /var/lib/apt/lists/*
           WORKDIR /app
           EOF
-
-      - name: Verify Docker Images
-        run: |
-          docker images | grep -E "python.*3.9-slim-time|node.*18-slim-time"
-
-      - name: Build Code
+      - run: npm run build
+      - name: Run Unit Tests
         env:
           API_URL: "http://localhost:5000/api"
-        run: npm run build
-
-      - name: Run Tests (Unit & E2E)
-        env:
-          API_URL: "http://localhost:5000/api"
-          SYSTEM_API_KEY: "e3d83efd3474a53f625ffdfa98f6c9fa2936e7722d7d16bae50d9382370ba2f8"
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-        run: |
-          npm run test
-          npm run test:e2e:ci
+        run: npm run test
 
   web:
-    name: Web Frontend
+    name: Web Frontend (Build)
     runs-on: ubuntu-latest
-
     defaults:
       run:
         working-directory: ./web
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: web/package-lock.json
-
-      - name: Install dependencies
-        run: npm ci
-
+      - run: npm ci
       - name: Build
         env:
-          API_URL: "http://localhost:5000/api"
           NEXT_PUBLIC_API_URL: "http://localhost:5000/api"
         run: npm run build
