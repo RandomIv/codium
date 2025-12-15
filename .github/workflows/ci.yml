@@ -9,6 +9,9 @@ on:
 env:
   SYSTEM_API_KEY: "e3d83efd3474a53f625ffdfa98f6c9fa2936e7722d7d16bae50d9382370ba2f8"
   JWT_SECRET: "your_jwt_secret_key"
+  DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
+  REDIS_HOST: localhost
+  REDIS_PORT: 6379
 
 jobs:
   api:
@@ -50,22 +53,16 @@ jobs:
       - run: npm ci
       - name: Setup DB Schema
         env:
-          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
+          JWT_EXPIRATION: "1h"
         run: |
           npx prisma generate
           npx prisma migrate deploy
       - name: Run Unit Tests
         env:
-          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
           JWT_EXPIRATION: "1h"
         run: npm run test
       - name: Run API E2E Tests
         env:
-          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
           JWT_EXPIRATION: "1h"
         run: npm run test:e2e:ci
 
@@ -109,14 +106,10 @@ jobs:
       - name: Run Unit Tests
         env:
           API_URL: "http://localhost:5000/api"
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
         run: npm run test
       - name: Run Judge E2E Tests
         env:
           API_URL: "http://localhost:5000/api"
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
         run: npm run test:e2e:ci
 
   web-system-e2e:
@@ -166,27 +159,40 @@ jobs:
           WORKDIR /app
           EOF
 
-      - name: Start API Service
+      - name: Setup API
         working-directory: ./api
         env:
-          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
           JWT_EXPIRATION: "1h"
-          PORT: 5000
         run: |
           npm ci
           npx prisma generate
           npx prisma migrate deploy
+
+      - name: Seed Database for E2E Tests
+        working-directory: ./api
+        env:
+          JWT_EXPIRATION: "1h"
+        run: npx tsx prisma/seed.ts
+
+      - name: Create Admin User for Playwright Tests
+        working-directory: ./api
+        env:
+          JWT_EXPIRATION: "1h"
+        run: npx tsx prisma/seed-admin.ts
+
+      - name: Build & Start API Service
+        working-directory: ./api
+        env:
+          JWT_EXPIRATION: "1h"
+          PORT: 5000
+        run: |
           npm run build
           npm run start:prod > ../api.log 2>&1 &
 
-      - name: Start Judge Service
+      - name: Build & Start Judge Service
         working-directory: ./judge-service
         env:
           API_URL: "http://localhost:5000/api"
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
           PORT: 5001
         run: |
           npm ci
@@ -205,24 +211,53 @@ jobs:
           npm run build
           npm start > ../web.log 2>&1 &
 
-      - name: Wait for services
-        run: sleep 15
+      - name: Wait for API to be ready
+        run: |
+          echo "Waiting for API..."
+          for i in {1..30}; do
+            if curl -s http://localhost:5000/api/health > /dev/null 2>&1 || curl -s http://localhost:5000/api > /dev/null 2>&1; then
+              echo "API is ready!"
+              break
+            fi
+            echo "Attempt $i: API not ready yet..."
+            sleep 2
+          done
+
+      - name: Wait for Web to be ready
+        run: |
+          echo "Waiting for Web..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3000 > /dev/null 2>&1; then
+              echo "Web is ready!"
+              break
+            fi
+            echo "Attempt $i: Web not ready yet..."
+            sleep 2
+          done
 
       - name: Install Playwright Browsers
         working-directory: ./web
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
 
       - name: Run Playwright Tests
         working-directory: ./web
         env:
           NEXT_PUBLIC_API_URL: "http://localhost:5000/api"
-        run: npx playwright test
+        run: npx playwright test --retries=2
 
-      - name: Upload Logs
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: web/playwright-report/
+          retention-days: 7
+
+      - name: Upload Service Logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: service-logs
           path: |
             *.log
-            web/playwright-report/
+          retention-days: 7
