@@ -115,8 +115,12 @@ describe('CodeExecutionService Integration', () => {
         Cmd: ['/usr/bin/time', '-v', 'python3', 'test.py'],
       };
 
+      let rejectWait: () => void;
       mockContainer.wait.mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 2000)),
+        () =>
+          new Promise((_, reject) => {
+            rejectWait = reject;
+          }),
       );
 
       const result = await service.execute(
@@ -136,9 +140,7 @@ describe('CodeExecutionService Integration', () => {
         Cmd: ['/usr/bin/time', '-v', 'python3', 'test.py'],
       };
 
-      mockContainer.wait.mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 2000)),
-      );
+      mockContainer.wait.mockImplementation(() => new Promise(() => {}));
 
       await service.execute(mockDockerClient, containerConfig, '', 100);
 
@@ -379,9 +381,7 @@ describe('CodeExecutionService Integration', () => {
         Cmd: ['/usr/bin/time', '-v', 'python3', 'test.py'],
       };
 
-      mockContainer.wait.mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 2000)),
-      );
+      mockContainer.wait.mockImplementation(() => new Promise(() => {}));
 
       const createTimeoutSpy = jest.spyOn(
         resultCollector,

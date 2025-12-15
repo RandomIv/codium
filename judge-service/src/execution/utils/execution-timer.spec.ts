@@ -33,7 +33,7 @@ describe('ExecutionTimer', () => {
     });
 
     it('should handle very short timeouts', async () => {
-      const promise = new Promise((resolve) => setTimeout(resolve, 100));
+      const promise = new Promise(() => {});
 
       const result = await ExecutionTimer.executeWithTimeout(promise, 1);
 
@@ -51,7 +51,7 @@ describe('ExecutionTimer', () => {
     });
 
     it('should handle zero timeout', async () => {
-      const promise = new Promise((resolve) => setTimeout(resolve, 10));
+      const promise = new Promise(() => {});
 
       const result = await ExecutionTimer.executeWithTimeout(promise, 0);
 
@@ -68,7 +68,7 @@ describe('ExecutionTimer', () => {
     });
 
     it('should return execution time even on timeout', async () => {
-      const promise = new Promise((resolve) => setTimeout(resolve, 500));
+      const promise = new Promise(() => {});
 
       const result = await ExecutionTimer.executeWithTimeout(promise, 100);
 
@@ -88,7 +88,7 @@ describe('ExecutionTimer', () => {
     it('should handle multiple concurrent executions', async () => {
       const promise1 = Promise.resolve('first');
       const promise2 = Promise.resolve('second');
-      const promise3 = new Promise((resolve) => setTimeout(resolve, 200));
+      const promise3 = new Promise(() => {});
 
       const [result1, result2, result3] = await Promise.all([
         ExecutionTimer.executeWithTimeout(promise1, 1000),
@@ -109,7 +109,6 @@ describe('ExecutionTimer', () => {
       const result = await ExecutionTimer.executeWithTimeout(promise, 1000);
 
       expect(result.result).toBe('done');
-      await new Promise((resolve) => setTimeout(resolve, 1100));
     });
 
     it('should handle null result correctly', async () => {

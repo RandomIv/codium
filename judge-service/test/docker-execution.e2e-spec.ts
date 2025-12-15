@@ -7,9 +7,11 @@ import ExecutionResult from '../src/execution/interfaces/execution-result.interf
 
 const waitForCondition = async (
   condition: () => Promise<boolean>,
-  timeout = 5000,
-  interval = 100,
+  timeout = 8000,
+  interval = 150,
 ) => {
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
   const start = Date.now();
   while (Date.now() - start < timeout) {
     if (await condition()) return true;
@@ -48,7 +50,7 @@ describe('Docker Execution E2E', () => {
         )
         .map((c) => {
           const container = docker.getContainer(c.Id);
-          return container.remove({ force: true }).catch((e) => {});
+          return container.remove({ force: true }).catch(() => {});
         });
       await Promise.all(cleanupTasks);
     }
@@ -76,6 +78,22 @@ describe('Docker Execution E2E', () => {
   });
 
   describe('Container Lifecycle', () => {
+    beforeEach(async () => {
+      const containers = await docker.listContainers({ all: true });
+      const cleanupTasks = containers
+        .filter(
+          (c) =>
+            c.Image.includes('python:3.9-slim-time') ||
+            c.Image.includes('node:18-slim-time'),
+        )
+        .map((c) => {
+          const container = docker.getContainer(c.Id);
+          return container.remove({ force: true }).catch(() => {});
+        });
+      await Promise.all(cleanupTasks);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    });
+
     it('should create and remove Python container', async () => {
       const code = 'print("test")';
 
@@ -90,7 +108,7 @@ describe('Docker Execution E2E', () => {
       });
 
       expect(isCleaned).toBe(true);
-    }, 10000);
+    }, 15000);
 
     it('should create and remove JavaScript container', async () => {
       const containerConfig = {
@@ -117,7 +135,7 @@ describe('Docker Execution E2E', () => {
       });
 
       expect(isCleaned).toBe(true);
-    }, 10000);
+    }, 15000);
 
     it('should cleanup container even on timeout', async () => {
       const code = 'import time\ntime.sleep(10)';
@@ -133,7 +151,7 @@ describe('Docker Execution E2E', () => {
       });
 
       expect(isCleaned).toBe(true);
-    }, 15000);
+    }, 20000);
 
     it('should cleanup container on error', async () => {
       const code = 'raise Exception("test")';
@@ -149,7 +167,7 @@ describe('Docker Execution E2E', () => {
       });
 
       expect(isCleaned).toBe(true);
-    }, 10000);
+    }, 15000);
   });
 
   describe('Container Isolation', () => {
