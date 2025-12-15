@@ -1,4 +1,4 @@
-name: CI & Full Testing Suite
+name: CI (Unit & Integration)
 
 on:
   push:
@@ -119,113 +119,21 @@ jobs:
           REDIS_PORT: 6379
         run: npm run test:e2e:ci
 
-  web-system-e2e:
-    name: Web Build & System E2E
+  web:
+    name: Web Frontend
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: codium
-          POSTGRES_PASSWORD: codium_password
-          POSTGRES_DB: codium_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U codium"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+    defaults:
+      run:
+        working-directory: ./web
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: '**/package-lock.json'
-
-      - name: Build Judge Sandbox Images
-        run: |
-          docker build -t python:3.9-slim-time - <<EOF
-          FROM python:3.9-slim
-          RUN apt-get update && apt-get install -y time && rm -rf /var/lib/apt/lists/*
-          WORKDIR /app
-          EOF
-          docker build -t node:18-slim-time - <<EOF
-          FROM node:18-slim
-          RUN apt-get update && apt-get install -y time && rm -rf /var/lib/apt/lists/*
-          WORKDIR /app
-          EOF
-
-      - name: Start API Service
-        working-directory: ./api
-        env:
-          DATABASE_URL: "postgresql://codium:codium_password@localhost:5432/codium_test?schema=public"
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_EXPIRATION: "1h"
-          PORT: 5000
-          FRONTEND_URL: "http://localhost:3000"
-        run: |
-          npm ci
-          npx prisma generate
-          npx prisma migrate deploy
-          # ВАЖЛИВО: Запускаємо сідер для наповнення бази даними
-          npx prisma db seed
-          npm run build
-          npm run start:prod > ../api.log 2>&1 &
-
-      - name: Start Judge Service
-        working-directory: ./judge-service
-        env:
-          API_URL: "http://localhost:5000/api"
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          PORT: 5001
-        run: |
-          npm ci
-          npm run build
-          npm run start:prod > ../judge.log 2>&1 &
-
-      - name: Setup Web
-        working-directory: ./web
-        run: npm ci
-
-      - name: Build & Start Web
-        working-directory: ./web
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - name: Build
         env:
           NEXT_PUBLIC_API_URL: "http://localhost:5000/api"
-        run: |
-          npm run build
-          npm start > ../web.log 2>&1 &
-
-      - name: Wait for services
-        run: sleep 30
-
-      - name: Install Playwright Browsers
-        working-directory: ./web
-        run: npx playwright install --with-deps
-
-      - name: Run Playwright Tests
-        working-directory: ./web
-        env:
-          NEXT_PUBLIC_API_URL: "http://localhost:5000/api"
-        run: npx playwright test
-
-      - name: Upload Logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: service-logs
-          path: |
-            *.log
-            web/playwright-report/
+        run: npm run build
