@@ -44,7 +44,7 @@ if __name__ == '__main__':
         args = json.loads(input_str)
         result = solution(*args)
         
-        print(json.dumps(result))
+        print(json.dumps(result, separators=(',', ':')))
     except Exception:
         sys.exit(1)
 `,
