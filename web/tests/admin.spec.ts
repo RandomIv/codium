@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 const adminUser = {
-  email: 'john@gmail.com',
+  email: 'admin@codium.com',
   password: '12345678',
 };
 
