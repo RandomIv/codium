@@ -112,12 +112,12 @@ export default function ProblemWorkspace() {
                 roundedSelection: false,
                 scrollBeyondLastColumn: 0,
                 wordWrap: isMobile ? 'on' : 'off',
-                
+
                 folding: !isMobile,
                 glyphMargin: !isMobile,
                 lineDecorationsWidth: isMobile ? 5 : 10,
                 lineNumbersMinChars: isMobile ? 3 : 5,
-                
+
                 scrollbar: {
                   vertical: 'auto',
                   horizontal: 'auto',
@@ -133,7 +133,7 @@ export default function ProblemWorkspace() {
       <ResizableHandle withHandle />
 
       <ResizablePanel defaultSize={40} minSize={10}>
-        <TestConsole />
+        <TestConsole problem={problem} />
       </ResizablePanel>
     </ResizablePanelGroup>
   );

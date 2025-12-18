@@ -12,8 +12,9 @@ import {
 import { useWorkspaceStore } from '@/store/workspaceStore';
 import { Verdict } from '@/types/enums';
 import { cn } from '@/lib/utils';
+import type { Problem } from '@/types/problem';
 
-export function TestConsole() {
+export function TestConsole({ problem }: { problem?: Problem }) {
   const { testLogs } = useWorkspaceStore();
 
   const getStatusColor = (status: Verdict) => {
@@ -25,7 +26,7 @@ export function TestConsole() {
       case Verdict.TIME_LIMIT_EXCEEDED:
         return 'text-yellow-500';
       default:
-        return 'text-destructive'; 
+        return 'text-destructive';
     }
   };
 
@@ -43,8 +44,6 @@ export function TestConsole() {
     }
   };
 
-  
-  
   const hasGlobalError = testLogs?.some(
     (log) =>
       log.status === Verdict.COMPILATION_ERROR ||
@@ -57,8 +56,6 @@ export function TestConsole() {
 
       <Tabs
         defaultValue="cases"
-        
-        
         className="flex flex-1 flex-col overflow-hidden rounded-3xl bg-muted/30 p-2"
       >
         <div className="flex justify-center pb-2">
@@ -74,7 +71,7 @@ export function TestConsole() {
               className={cn(
                 'rounded-full px-6 py-1.5 text-xs font-bold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-md transition-all',
                 hasGlobalError &&
-                  'text-destructive data-[state=active]:text-destructive', 
+                  'text-destructive data-[state=active]:text-destructive',
               )}
             >
               Test Result
@@ -87,8 +84,6 @@ export function TestConsole() {
             </TabsTrigger>
           </TabsList>
         </div>
-
-        {}
         <TabsContent
           value="cases"
           className="flex-1 overflow-y-auto rounded-2xl bg-card p-4 shadow-inner m-0 ring-1 ring-inset ring-border/20 scrollbar-content"
@@ -98,13 +93,33 @@ export function TestConsole() {
               <p className="text-muted-foreground text-sm text-center italic">
                 Example test cases
               </p>
-              {}
-              <div className="rounded-xl bg-muted/50 p-3 font-mono text-sm text-foreground border border-border/50">
-                nums = [2,7,11,15], target = 9
-              </div>
-              <div className="rounded-xl bg-muted/50 p-3 font-mono text-sm text-foreground border border-border/50">
-                nums = [3,2,4], target = 6
-              </div>
+              {problem?.testCases && problem.testCases.length > 0 ? (
+                problem.testCases.map((testCase, index) => (
+                  <div
+                    key={index}
+                    className="rounded-xl bg-muted/50 p-3 font-mono text-sm text-foreground border border-border/50"
+                  >
+                    <div className="space-y-2">
+                      <div>
+                        <span className="text-xs text-muted-foreground font-bold">
+                          Input:{' '}
+                        </span>
+                        <span>{testCase.input}</span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground font-bold">
+                          Expected Output:{' '}
+                        </span>
+                        <span>{testCase.output}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-muted-foreground text-sm py-4">
+                  No public test cases available
+                </div>
+              )}
             </div>
           </div>
         </TabsContent>
