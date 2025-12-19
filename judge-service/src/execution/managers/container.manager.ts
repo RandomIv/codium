@@ -39,10 +39,24 @@ export class ContainerManager {
     const MAX_LOG_SIZE = 1024 * 1024;
 
     if (bufferLogs.length > MAX_LOG_SIZE) {
-      return bufferLogs.subarray(0, MAX_LOG_SIZE);
+      return this.smartTruncate(bufferLogs);
     }
 
     return bufferLogs;
+  }
+
+  private smartTruncate(buffer: Buffer): Buffer {
+    const headSize = 200 * 1024;
+    const tailSize = 800 * 1024;
+
+    const truncatedMessage = Buffer.from(
+      '\n... [LOGS TRUNCATED BY JUDGE SYSTEM] ...\n',
+    );
+
+    const head = buffer.subarray(0, headSize);
+    const tail = buffer.subarray(-tailSize);
+
+    return Buffer.concat([head, truncatedMessage, tail]);
   }
 
   async getExitCode(container: Container): Promise<number> {

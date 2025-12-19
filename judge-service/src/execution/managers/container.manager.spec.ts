@@ -156,7 +156,11 @@ describe('ContainerManager', () => {
 
       const result = await manager.readLogs(mockContainer);
 
-      expect(result.length).toBe(1024 * 1024);
+      const expectedSize =
+        200 * 1024 +
+        800 * 1024 +
+        Buffer.from('\n... [LOGS TRUNCATED BY JUDGE SYSTEM] ...\n').length;
+      expect(result.length).toBe(expectedSize);
     });
 
     it('should not truncate logs smaller than 1MB', async () => {
@@ -195,7 +199,8 @@ describe('ContainerManager', () => {
       const result = await manager.readLogs(mockContainer);
 
       expect(result.toString('utf-8', 0, 5)).toBe('START');
-      expect(result.length).toBe(1024 * 1024);
+      expect(result.toString('utf-8', result.length - 3)).toBe('END');
+      expect(result.includes('LOGS TRUNCATED BY JUDGE SYSTEM')).toBe(true);
     });
   });
 
