@@ -4,11 +4,26 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { PrismaExceptionFilter } from '../../src/common/filters/prisma-exception.filter';
+import { startTestDbContainer, stopTestDbContainer } from './test-db-container';
+
+let isContainerRunning = false;
+
+async function cleanDatabase(prisma: PrismaService) {
+  await prisma.submission.deleteMany();
+  await prisma.testCase.deleteMany();
+  await prisma.problem.deleteMany();
+  await prisma.user.deleteMany();
+}
 
 export async function createTestApp(): Promise<{
   app: INestApplication;
   prisma: PrismaService;
 }> {
+  if (!isContainerRunning) {
+    await startTestDbContainer();
+    isContainerRunning = true;
+  }
+
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
   }).compile();
@@ -20,6 +35,8 @@ export async function createTestApp(): Promise<{
   await app.init();
 
   const prisma = app.get<PrismaService>(PrismaService);
+
+  await cleanDatabase(prisma);
 
   return { app, prisma };
 }
@@ -142,3 +159,5 @@ export async function createTestAppWithRoles(): Promise<{
 
   return { app, prisma, adminToken, userToken };
 }
+
+export { stopTestDbContainer };

@@ -4,7 +4,10 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { createSubmissionDtoStub } from '../src/submission/submission.stubs';
 import { createProblemDtoStub } from '../src/problem/problem.stubs';
 import { SubmissionStatus, Verdict } from '../src/generated/prisma';
-import { createTestAppWithAuth } from './utils/create-test-app';
+import {
+  createTestAppWithAuth,
+  stopTestDbContainer,
+} from './utils/create-test-app';
 
 describe('SubmissionController (E2E)', () => {
   let app: INestApplication;
@@ -35,6 +38,7 @@ describe('SubmissionController (E2E)', () => {
 
   afterAll(async () => {
     await app.close();
+    await stopTestDbContainer();
   });
 
   beforeEach(async () => {

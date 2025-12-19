@@ -5,7 +5,10 @@ import {
   createProblemDtoStub,
   updateProblemDtoStub,
 } from '../src/problem/problem.stubs';
-import { createTestAppWithRoles } from './utils/create-test-app';
+import {
+  createTestAppWithRoles,
+  stopTestDbContainer,
+} from './utils/create-test-app';
 
 describe('ProblemController (E2E)', () => {
   let app: INestApplication;
@@ -35,6 +38,7 @@ describe('ProblemController (E2E)', () => {
 
   afterAll(async () => {
     await app.close();
+    await stopTestDbContainer();
   });
 
   beforeEach(async () => {

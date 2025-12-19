@@ -1,12 +1,8 @@
-import * as dotenv from 'dotenv';
-
-dotenv.config({ path: '.env.test.local' });
-
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 
 import { PrismaService } from '../src/prisma/prisma.service';
-import { createTestApp } from './utils/create-test-app';
+import { createTestApp, stopTestDbContainer } from './utils/create-test-app';
 
 describe('Auth API (e2e)', () => {
   let app: INestApplication;
@@ -20,6 +16,7 @@ describe('Auth API (e2e)', () => {
 
   afterAll(async () => {
     await app.close();
+    await stopTestDbContainer();
   });
 
   beforeEach(async () => {
