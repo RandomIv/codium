@@ -4,7 +4,7 @@ import { RegisterUserDto } from './dtos/register-user.dto';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import type { User } from '../generated/prisma';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { UserService } from '../user/user.service';
 
 @Controller('auth')
