@@ -52,3 +52,93 @@ export async function createTestAppWithAuth(
 
   return { app, prisma, authToken };
 }
+
+export async function createTestAppWithRoles(): Promise<{
+  app: INestApplication;
+  prisma: PrismaService;
+  adminToken: string;
+  userToken: string;
+}> {
+  const { app, prisma } = await createTestApp();
+
+  await prisma.user.deleteMany({
+    where: {
+      email: {
+        in: ['admin@example.com', 'user@example.com'],
+      },
+    },
+  });
+
+  const adminRegResponse = await request(app.getHttpServer())
+    .post('/api/auth/register')
+    .send({
+      email: 'admin@example.com',
+      password: 'admin123',
+      name: 'Admin User',
+    });
+
+  if (adminRegResponse.status !== 201) {
+    throw new Error(
+      `Admin registration failed: ${JSON.stringify(adminRegResponse.body)}`,
+    );
+  }
+
+  await prisma.user.update({
+    where: { email: 'admin@example.com' },
+    data: { role: 'ADMIN' },
+  });
+
+  const adminLoginResponse = await request(app.getHttpServer())
+    .post('/api/auth/login')
+    .send({
+      email: 'admin@example.com',
+      password: 'admin123',
+    });
+
+  if (adminLoginResponse.status !== 201 && adminLoginResponse.status !== 200) {
+    throw new Error(
+      `Admin login failed: ${JSON.stringify(adminLoginResponse.body)}`,
+    );
+  }
+
+  const adminToken = adminLoginResponse.body.accessToken;
+
+  if (!adminToken) {
+    throw new Error('Admin token is undefined');
+  }
+
+  const userRegResponse = await request(app.getHttpServer())
+    .post('/api/auth/register')
+    .send({
+      email: 'user@example.com',
+      password: 'user1234',
+      name: 'Regular User',
+    });
+
+  if (userRegResponse.status !== 201) {
+    throw new Error(
+      `User registration failed: ${JSON.stringify(userRegResponse.body)}`,
+    );
+  }
+
+  const userLoginResponse = await request(app.getHttpServer())
+    .post('/api/auth/login')
+    .send({
+      email: 'user@example.com',
+      password: 'user1234',
+    });
+
+  if (userLoginResponse.status !== 201 && userLoginResponse.status !== 200) {
+    throw new Error(
+      `User login failed: ${JSON.stringify(userLoginResponse.body)}`,
+    );
+  }
+
+  const userToken = userLoginResponse.body.accessToken;
+
+  if (!userToken) {
+    throw new Error('User token is undefined');
+  }
+
+  return { app, prisma, adminToken, userToken };
+}
