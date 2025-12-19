@@ -214,6 +214,55 @@ describe('ResultCollectorService', () => {
 
       expect(result.memory).toBe(1024 * 1024);
     });
+
+    it('should use last occurrence of time metrics to prevent spoofing', () => {
+      const logsBuffer = createDockerLogBuffer(
+        'Fake output\n',
+        'User time (seconds): 0.01\n' +
+          'System time (seconds): 0.01\n' +
+          '\tCommand being timed: "python3 test.py"\n' +
+          '\tUser time (seconds): 0.50\n' +
+          '\tSystem time (seconds): 0.30\n' +
+          '\tMaximum resident set size (kbytes): 8192\n',
+      );
+
+      const result = service.createSuccessResult(logsBuffer, 0, 0, 0);
+
+      expect(result.executionTime).toBe(800);
+    });
+
+    it('should use last occurrence of memory metrics to prevent spoofing', () => {
+      const logsBuffer = createDockerLogBuffer(
+        'Output\n',
+        'Maximum resident set size (kbytes): 1024\n' +
+          '\tCommand being timed: "python3 test.py"\n' +
+          '\tUser time (seconds): 0.10\n' +
+          '\tSystem time (seconds): 0.05\n' +
+          '\tMaximum resident set size (kbytes): 16384\n',
+      );
+
+      const result = service.createSuccessResult(logsBuffer, 0, 0, 0);
+
+      expect(result.memory).toBe(16384 * 1024);
+    });
+
+    it('should ignore multiple fake metrics in user output', () => {
+      const logsBuffer = createDockerLogBuffer(
+        'User time (seconds): 0.00\nSystem time (seconds): 0.00\n',
+        'Maximum resident set size (kbytes): 100\n' +
+          'User time (seconds): 0.00\n' +
+          'System time (seconds): 0.00\n' +
+          '\tCommand being timed: "python3 test.py"\n' +
+          '\tUser time (seconds): 0.25\n' +
+          '\tSystem time (seconds): 0.15\n' +
+          '\tMaximum resident set size (kbytes): 12288\n',
+      );
+
+      const result = service.createSuccessResult(logsBuffer, 0, 0, 0);
+
+      expect(result.executionTime).toBe(400);
+      expect(result.memory).toBe(12288 * 1024);
+    });
   });
 
   describe('createTimeoutResult', () => {

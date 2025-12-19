@@ -6,9 +6,9 @@ const SECONDS_TO_MS = 1000;
 const KBYTES_TO_BYTES = 1024;
 const TIME_OUTPUT_MARKER = '\tCommand being timed:';
 
-const MEMORY_REGEX = /Maximum resident set size \(kbytes\): (\d+)/;
-const USER_TIME_REGEX = /User time \(seconds\): ([\d.]+)/;
-const SYSTEM_TIME_REGEX = /System time \(seconds\): ([\d.]+)/;
+const MEMORY_REGEX = /Maximum resident set size \(kbytes\): (\d+)/g;
+const USER_TIME_REGEX = /User time \(seconds\): ([\d.]+)/g;
+const SYSTEM_TIME_REGEX = /System time \(seconds\): ([\d.]+)/g;
 
 @Injectable()
 export class ResultCollectorService {
@@ -64,24 +64,31 @@ export class ResultCollectorService {
   }
 
   private parseMemory(stderr: string, fallbackMemory: number): number {
-    const memoryMatch = stderr.match(MEMORY_REGEX);
-    if (memoryMatch) {
-      return parseInt(memoryMatch[1], 10) * KBYTES_TO_BYTES;
+    const matches = [...stderr.matchAll(MEMORY_REGEX)];
+
+    if (matches.length === 0) {
+      return fallbackMemory;
     }
-    return fallbackMemory;
+
+    const lastMatch = matches[matches.length - 1];
+    return parseInt(lastMatch[1], 10) * KBYTES_TO_BYTES;
   }
 
   private parseExecutionTime(stderr: string, fallbackTime: number): number {
-    const userTimeMatch = stderr.match(USER_TIME_REGEX);
-    const systemTimeMatch = stderr.match(SYSTEM_TIME_REGEX);
+    const userTimeMatches = [...stderr.matchAll(USER_TIME_REGEX)];
+    const systemTimeMatches = [...stderr.matchAll(SYSTEM_TIME_REGEX)];
 
-    if (userTimeMatch && systemTimeMatch) {
-      const userTime = parseFloat(userTimeMatch[1]);
-      const systemTime = parseFloat(systemTimeMatch[1]);
-      return Math.round((userTime + systemTime) * SECONDS_TO_MS);
+    if (userTimeMatches.length === 0 || systemTimeMatches.length === 0) {
+      return fallbackTime;
     }
 
-    return fallbackTime;
+    const lastUserMatch = userTimeMatches[userTimeMatches.length - 1];
+    const lastSystemMatch = systemTimeMatches[systemTimeMatches.length - 1];
+
+    const userTime = parseFloat(lastUserMatch[1]);
+    const systemTime = parseFloat(lastSystemMatch[1]);
+
+    return Math.round((userTime + systemTime) * SECONDS_TO_MS);
   }
 
   private cleanStderr(stderr: string): string {
